@@ -3,10 +3,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace NuGet.Resolver.Test
 {
@@ -447,6 +447,30 @@ namespace NuGet.Resolver.Test
             Assert.Equal(packages[index++].Version, NuGetVersion.Parse("5.0.0"));
             Assert.Equal(packages[index++].Version, NuGetVersion.Parse("3.0.0"));
             Assert.Equal(packages[index++].Version, NuGetVersion.Parse("2.0.0"));
+        }
+
+        [Fact]
+        public void ResolverSort_Prerelease_Asd()
+        {
+            // Arrange
+            var comparer = new ResolverComparer(DependencyBehavior.HighestPatch, new HashSet<PackageIdentity>(), new HashSet<string>());
+
+            var packages = new List<ResolverPackage>
+            {
+                new ResolverPackage("A", NuGetVersion.Parse("1.0.0-beta.2"), null, true, false),
+                new ResolverPackage("A", NuGetVersion.Parse("1.0.0-beta.3"), null, true, false),
+                new ResolverPackage("A", NuGetVersion.Parse("1.0.0-beta.1"), null, true, false),
+                new ResolverPackage("A", NuGetVersion.Parse("1.0.0"), null, true, false),
+                new ResolverPackage("A", NuGetVersion.Parse("0.9.0"), null, true, false),
+            };
+
+            // Act
+            packages.Sort(comparer);
+
+            // Assert
+            packages[0].Version.OriginalVersion.Should().Be("1.0.0-beta.3");
+            packages[1].Version.OriginalVersion.Should().Be("1.0.0-beta.2");
+            packages[2].Version.OriginalVersion.Should().Be("1.0.0-beta.1");
         }
 
         private static List<NuGetVersion> VersionList = new List<NuGetVersion>()

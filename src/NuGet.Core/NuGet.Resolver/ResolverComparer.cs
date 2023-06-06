@@ -160,10 +160,12 @@ namespace NuGet.Resolver
                             return 0;
                         }
 
-                        // Take the lowest Major, then the Highest Minor and Patch
+                        // Take the lowest Major, then the Highest Minor and Patch, finally sort prerelease versions
                         return new[] { x, y }.OrderBy(p => p.Version.Major)
                             .ThenByDescending(p => p.Version.Minor)
-                            .ThenByDescending(p => p.Version.Patch).FirstOrDefault() == x ? -1 : 1;
+                            .ThenByDescending(p => p.Version.Patch)
+                            .ThenByDescending(p => p.Version)
+                            .FirstOrDefault() == x ? -1 : 1;
                     }
                 case DependencyBehavior.HighestPatch:
                     {
@@ -172,10 +174,12 @@ namespace NuGet.Resolver
                             return 0;
                         }
 
-                        // Take the lowest Major and Minor, then the Highest Patch
+                        // Take the lowest Major and Minor, then the Highest Patch, finally sort prerelease versions
                         return new[] { x, y }.OrderBy(p => p.Version.Major)
                             .ThenBy(p => p.Version.Minor)
-                            .ThenByDescending(p => p.Version.Patch).FirstOrDefault() == x ? -1 : 1;
+                            .ThenByDescending(p => p.Version.Patch)
+                            .ThenByDescending(p => p.Version)
+                            .FirstOrDefault() == x ? -1 : 1;
                     }
                 default:
                     return _versionComparer.Compare(xv, yv);
