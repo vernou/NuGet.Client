@@ -73,3 +73,9 @@ steps:
 
 - task: ComponentGovernanceComponentDetection@0
   displayName: 'Component Detection'
+
+- script: dotnet format --verify-no-changes whitespace NuGet.sln
+  name: dotnetFormatWhitespace
+  displayName: "Whitespace Linting"
+  continueOnError: ${{ parameters.isOfficialBuild }}
+  condition: succeededOrFailed()
