@@ -197,7 +197,7 @@ namespace Dotnet.Integration.Test
 
         private void RestoreProjectOrSolution(string workingDirectory, string fileName, string args, bool validateSuccess)
         {
-            CommandRunnerResult result =RunDotnet(
+            CommandRunnerResult result = RunDotnet(
                 workingDirectory,
                 $"restore {fileName} {args}",
                 ignoreExitCode: !validateSuccess);
@@ -224,7 +224,7 @@ namespace Dotnet.Integration.Test
                     .GroupBy(x => x.Key, _processEnvVars.Comparer)  // GroupBy respects sequence order, so taking the last pair per environment variable name will allow the
                     .ToDictionary(x => x.Key, x => x.Last().Value); // input dictionary to override the defaults.
 
-            CommandRunnerResult result =CommandRunner.Run(
+            CommandRunnerResult result = CommandRunner.Run(
                     TestDotnetCli,
                     workingDirectory,
                     args,
@@ -266,7 +266,7 @@ namespace Dotnet.Integration.Test
 
         private CommandRunnerResult PackProjectOrSolution(string workingDirectory, string file, string args, bool validateSuccess)
         {
-            CommandRunnerResult result =RunDotnet(
+            CommandRunnerResult result = RunDotnet(
                 workingDirectory,
                 $"pack {file} {args}",
                 ignoreExitCode: !validateSuccess);
@@ -298,7 +298,7 @@ namespace Dotnet.Integration.Test
 
         private void BuildProjectOrSolution(string workingDirectory, string file, string args, bool validateSuccess)
         {
-            CommandRunnerResult result =RunDotnet(
+            CommandRunnerResult result = RunDotnet(
                 workingDirectory,
                 $"msbuild {file} {args}",
                 ignoreExitCode: !validateSuccess);
