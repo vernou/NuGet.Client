@@ -22,32 +22,8 @@ public sealed class ContentFileUtilsTests
     [InlineData("/a/b/config/config.xml", "config/config.xml")]
     public void GetContentFileFolderRelativeToFramework(string input, string expected)
     {
-        using var _ = new SuppressAsserts();
-
         string actual = ContentFileUtils.GetContentFileFolderRelativeToFramework(input.AsSpan());
 
         Assert.Equal(expected, actual);
-    }
-
-    /// <summary>
-    /// Suppresses the default trace listeners for a specific duration. Useful to ensure that
-    /// debug asserts don't block unit tests indefinitely by showing modal dialog messages
-    /// about assertion failures.
-    /// </summary>
-    private sealed class SuppressAsserts : IDisposable
-    {
-        private readonly TraceListener[] _suppressedListeners;
-
-        public SuppressAsserts()
-        {
-            _suppressedListeners = Trace.Listeners.Cast<TraceListener>().ToArray();
-
-            Trace.Listeners.Clear();
-        }
-
-        public void Dispose()
-        {
-            Trace.Listeners.AddRange(_suppressedListeners);
-        }
     }
 }
