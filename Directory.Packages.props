@@ -25,7 +25,7 @@
     <MicrosoftWebXdtPackageVersion Condition="'$(MicrosoftWebXdtPackageVersion)' == ''">3.0.0</MicrosoftWebXdtPackageVersion>
     <SystemComponentModelCompositionPackageVersion Condition="'$(SystemComponentModelCompositionPackageVersion)' == ''">4.5.0</SystemComponentModelCompositionPackageVersion>
     <!-- System.Security.Cryptography.Xml is a dependency of Microsoft.Build.Tasks.Core. This property can be probably removed when MSBuild is updated to a newer version. -->
-    <SystemSecurityCryptographyXmlVersion Condition="'$(SystemSecurityCryptographyXmlVersion)' == ''">6.0.1</SystemSecurityCryptographyXmlVersion>
+    <SystemSecurityCryptographyXmlVersion Condition="'$(SystemSecurityCryptographyXmlVersion)' == ''">7.0.0</SystemSecurityCryptographyXmlVersion>
     <SystemSecurityCryptographyXmlVersion Condition="'$(MicrosoftBuildVersion)' == '16.8.0' Or '$(MicrosoftBuildVersion)' == '16.11.0'">4.7.1</SystemSecurityCryptographyXmlVersion>
   </PropertyGroup>
 
