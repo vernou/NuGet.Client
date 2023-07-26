@@ -456,7 +456,7 @@ steps:
     nuGetFeedType: external
     allowPackageConflicts: true
     publishFeedCredentials : nuget-build-dnceng-public-feed
-  condition: " and(succeeded(),eq(variables['PublishArtifactsToMyGet'], 'true'), eq(variables['BuildRTM'], 'false')) "
+  condition: " and(succeeded(), eq(variables['PublishArtifactsToMyGet'], 'true'), eq(variables['BuildRTM'], 'false'), not(endsWith(variables['Build.SourceBranchName'], '-MSRC'))) "
 
 - task: MSBuild@1
   displayName: "Collect Build Symbols"
