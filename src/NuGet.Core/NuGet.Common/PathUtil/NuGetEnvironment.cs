@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-// BCL annotations on Environment.GetEnvironmentVariable makes this file difficult to annotate in .NET 5+
-#nullable disable
-
 using System;
 using System.Globalization;
 using System.IO;
@@ -17,13 +14,15 @@ namespace NuGet.Common
         private const string DotNetExe = "dotnet.exe";
         private const string Home = "HOME";
         private const string UserProfile = "USERPROFILE";
-#if IS_CORECLR
+#if NETSTANDARD
         private const string DotNetHome = "DOTNET_CLI_HOME";
+        private const string UseOldGetFolderPathEnvironmentVariableName = "NUGET_GETFOLDERPATH_COMPAT";
 #endif
+        private const string IllegalEnumValueExceptionMessage = "Illegal enum value: ";
 
         private static readonly Lazy<string> _getHome = new Lazy<string>(() => GetHome());
 
-        private static string _nuGetTempDirectory = null;
+        private static string? _nuGetTempDirectory = null;
         internal static string NuGetTempDirectory
         {
             get { return _nuGetTempDirectory ??= GetNuGetTempDirectory(); }
@@ -145,7 +144,7 @@ namespace NuGet.Common
                     }
 
                 default:
-                    return null;
+                    throw new ArgumentException(paramName: nameof(folder), message: IllegalEnumValueExceptionMessage + folder);
             }
         }
 
@@ -154,10 +153,21 @@ namespace NuGet.Common
         private static extern int chmod(string pathname, int mode);
 
 
-#if IS_CORECLR
+#if NETSTANDARD
+        private static readonly bool UseOldGetFolderPathImplementation = ShouldUseOldFolderPathImplementation();
 
-        internal static string GetFolderPath(SpecialFolder folder)
+        private static bool ShouldUseOldFolderPathImplementation()
         {
+            string? value = Environment.GetEnvironmentVariable(UseOldGetFolderPathEnvironmentVariableName);
+            return string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // .NET Core & .NET Standard 1.0 didn't have Environment.GetFolderPath, so it was re-implemented here with environment variables.
+        // This method is kept temporarily to give customers a way to use it again in case using Environment.GetFolderPath on .NET (Core)
+        // introduces regressions.
+        internal static string GetFolderPathOld(SpecialFolder folder)
+        {
+#nullable disable
             switch (folder)
             {
                 case SpecialFolder.ProgramFilesX86:
@@ -226,6 +236,7 @@ namespace NuGet.Common
                 default:
                     return null;
             }
+#nullable restore
         }
 
         private static string GetDotNetHome()
@@ -233,10 +244,17 @@ namespace NuGet.Common
             return Environment.GetEnvironmentVariable(DotNetHome);
         }
 
-#else
+#endif
 
         internal static string GetFolderPath(SpecialFolder folder)
         {
+#if NETSTANDARD
+            if (UseOldGetFolderPathImplementation)
+            {
+                return GetFolderPathOld(folder);
+            }
+#endif
+
             // Convert the private enum to the .NET Framework enum
             Environment.SpecialFolder converted;
             switch (folder)
@@ -261,38 +279,78 @@ namespace NuGet.Common
                     return _getHome.Value;
 
                 case SpecialFolder.CommonApplicationData:
-                    converted = Environment.SpecialFolder.CommonApplicationData;
+                    if (RuntimeEnvironmentHelper.IsWindows || RuntimeEnvironmentHelper.IsMono)
+                    {
+                        converted = Environment.SpecialFolder.CommonApplicationData;
+                    }
+                    else if (RuntimeEnvironmentHelper.IsMacOSX)
+                    {
+                        return @"/Library/Application Support";
+                    }
+                    else
+                    {
+                        var commonApplicationDataOverride = Environment.GetEnvironmentVariable("NUGET_COMMON_APPLICATION_DATA");
+
+                        if (!string.IsNullOrEmpty(commonApplicationDataOverride))
+                        {
+                            return commonApplicationDataOverride;
+                        }
+
+                        return @"/etc/opt";
+                    }
+
                     break;
 
                 case SpecialFolder.ApplicationData:
-                    converted = Environment.SpecialFolder.ApplicationData;
+                    if (RuntimeEnvironmentHelper.IsWindows || RuntimeEnvironmentHelper.IsMono)
+                    {
+                        converted = Environment.SpecialFolder.ApplicationData;
+                    }
+                    else
+                    {
+                        return Path.Combine(_getHome.Value, ".nuget");
+                    }
                     break;
 
                 case SpecialFolder.LocalApplicationData:
-                    converted = Environment.SpecialFolder.LocalApplicationData;
+                    if (RuntimeEnvironmentHelper.IsWindows || RuntimeEnvironmentHelper.IsMono)
+                    {
+                        converted = Environment.SpecialFolder.LocalApplicationData;
+                    }
+                    else
+                    {
+                        var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                        if (!string.IsNullOrEmpty(xdgDataHome))
+                        {
+                            return xdgDataHome;
+                        }
+
+                        return Path.Combine(_getHome.Value, ".local", "share");
+                    }
                     break;
 
                 default:
-                    return null;
+                    throw new ArgumentException(paramName: nameof(folder), message: IllegalEnumValueExceptionMessage + folder);
             }
 
             return Environment.GetFolderPath(converted);
         }
 
-#endif
-
         private static string GetHome()
         {
-#if IS_CORECLR
-            if (RuntimeEnvironmentHelper.IsWindows)
+#if NETSTANDARD
+            if (UseOldGetFolderPathImplementation)
             {
-                return GetValueOrThrowMissingEnvVarsDotnet(() => GetDotNetHome() ?? GetHomeWindows(), UserProfile, DotNetHome);
+                if (RuntimeEnvironmentHelper.IsWindows)
+                {
+                    return GetValueOrThrowMissingEnvVarsDotnet(() => GetDotNetHome() ?? GetHomeWindows(), UserProfile, DotNetHome);
+                }
+                else
+                {
+                    return GetValueOrThrowMissingEnvVarsDotnet(() => GetDotNetHome() ?? Environment.GetEnvironmentVariable(Home), Home, DotNetHome);
+                }
             }
-            else
-            {
-                return GetValueOrThrowMissingEnvVarsDotnet(() => GetDotNetHome() ?? Environment.GetEnvironmentVariable(Home), Home, DotNetHome);
-            }
-#else
+#endif
             if (RuntimeEnvironmentHelper.IsWindows)
             {
                 return GetValueOrThrowMissingEnvVar(() => GetHomeWindows(), UserProfile);
@@ -301,7 +359,6 @@ namespace NuGet.Common
             {
                 return GetValueOrThrowMissingEnvVar(() => Environment.GetEnvironmentVariable(Home), Home);
             }
-#endif
         }
 
         private static string GetHomeWindows()
@@ -335,7 +392,7 @@ namespace NuGet.Common
         /// <summary>
         /// Throw a helpful message if a required env var is not set.
         /// </summary>
-        private static string GetValueOrThrowMissingEnvVar(Func<string> getValue, string name)
+        private static string GetValueOrThrowMissingEnvVar(Func<string?> getValue, string name)
         {
             var value = getValue();
 
@@ -349,7 +406,7 @@ namespace NuGet.Common
 
         public static string GetDotNetLocation()
         {
-            var path = Environment.GetEnvironmentVariable("PATH");
+            string path = Environment.GetEnvironmentVariable("PATH")!;
             var isWindows = RuntimeEnvironmentHelper.IsWindows;
             var splitChar = isWindows ? ';' : ':';
             var executable = isWindows ? DotNetExe : DotNet;
