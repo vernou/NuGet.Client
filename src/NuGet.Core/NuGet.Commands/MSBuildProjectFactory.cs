@@ -239,6 +239,11 @@ namespace NuGet.Commands
 
         public static string GetTargetPathForSourceFile(string sourcePath, string projectDirectory)
         {
+            return GetTargetPathForSourceFile(sourcePath,projectDirectory,null)
+        }
+
+        private static string GetTargetPathForSourceFile(string sourcePath, string projectDirectory, ILogger logger)
+        {
             if (string.IsNullOrEmpty(sourcePath))
             {
                 throw new PackagingException(NuGetLogCode.NU5020, string.Format(CultureInfo.CurrentCulture, Strings.Error_EmptySourceFilePath));
@@ -278,6 +283,10 @@ namespace NuGet.Commands
                     relativePath = relativePath.Substring(0, relativePath.Length - 1);
                 }
                 targetPath = Path.Combine(targetPath, relativePath);
+            }
+            else
+            {
+                logger?.LogVerbose($"Skipping adding {sourcePath} to the symbols.nupkg as the file is coming from outside of the project directory {projectDirectory}.");
             }
 
             var finalTargetPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
