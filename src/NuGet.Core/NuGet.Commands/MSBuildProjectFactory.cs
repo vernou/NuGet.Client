@@ -239,7 +239,7 @@ namespace NuGet.Commands
 
         public static string GetTargetPathForSourceFile(string sourcePath, string projectDirectory)
         {
-            return GetTargetPathForSourceFile(sourcePath,projectDirectory,null)
+            return GetTargetPathForSourceFile(sourcePath, projectDirectory, null);
         }
 
         private static string GetTargetPathForSourceFile(string sourcePath, string projectDirectory, ILogger logger)

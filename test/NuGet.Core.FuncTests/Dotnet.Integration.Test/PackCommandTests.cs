@@ -2722,6 +2722,51 @@ namespace ClassLibrary
             }
         }
 
+        [PlatformFact(Platform.Windows)]
+        public void PackCommand_IncludeSource_WithFilesOutsideOfProjectStructure_DoesNotAddFiles()
+        {
+            using var testDirectory = msbuildFixture.CreateTestDirectory();
+            var utilitySrcFileContent = @"using System;
+namespace ClassLibrary
+{
+    public class UtilityMethods
+    {
+    }
+}";
+            var projectName = "ClassLibrary1";
+            var workingDirectory = Path.Combine(testDirectory, projectName);
+            File.WriteAllText(Path.Combine(testDirectory, "Utility.cs"), utilitySrcFileContent);
+
+            msbuildFixture.CreateDotnetNewProject(testDirectory.Path, projectName, " classlib");
+
+            using (var stream = new FileStream(Path.Combine(workingDirectory, $"{projectName}.csproj"), FileMode.Open, FileAccess.ReadWrite))
+            {
+                var xml = XDocument.Load(stream);
+                ProjectFileUtils.SetTargetFrameworkForProject(xml, "TargetFrameworks", "netstandard2.0;net7.0");
+                ProjectFileUtils.AddItem(xml, "Compile", "../Utility.cs", (string)null, new Dictionary<string, string>(), new Dictionary<string, string>());
+                ProjectFileUtils.WriteXmlToFile(xml, stream);
+            }
+
+            msbuildFixture.RestoreProjectExpectSuccess(workingDirectory, projectName);
+            msbuildFixture.PackProjectExpectSuccess(workingDirectory, projectName,
+                $"--include-source /p:PackageOutputPath={workingDirectory}");
+
+            var nupkgPath = Path.Combine(workingDirectory, $"{projectName}.1.0.0.nupkg");
+            var symbolsNupkgPath = Path.Combine(workingDirectory, $"{projectName}.1.0.0.symbols.nupkg");
+            var nuspecPath = Path.Combine(workingDirectory, "obj", $"{projectName}.1.0.0.nuspec");
+
+            Assert.True(File.Exists(nupkgPath), "The output .nupkg is not in the expected place");
+            Assert.True(File.Exists(symbolsNupkgPath), "The output symbols nupkg is not in the expected place");
+            Assert.True(File.Exists(nuspecPath), "The intermediate nuspec file is not in the expected place");
+
+            using var nupkgReader = new PackageArchiveReader(symbolsNupkgPath);
+            var nuspecReader = nupkgReader.NuspecReader;
+            var srcItems = nupkgReader.GetFiles("src").ToArray();
+            srcItems.Should().HaveCount(2);
+            srcItems.Should().Contain("src/ClassLibrary1/ClassLibrary1.csproj");
+            srcItems.Should().Contain("src/ClassLibrary1/Class1.cs");
+        }
+
         [PlatformTheory(Platform.Windows)]
         [InlineData("TargetFramework", "netstandard1.4")]
         [InlineData("TargetFrameworks", "netstandard1.4;net46")]
