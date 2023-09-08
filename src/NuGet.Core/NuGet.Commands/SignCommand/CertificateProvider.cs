@@ -116,7 +116,11 @@ namespace NuGet.Commands
             return resultCollection;
         }
 
-        private static async Task<X509Certificate2> LoadCertificateFromFileAsync(CertificateSourceOptions options)
+        private static
+#if IS_DESKTOP
+            async
+#endif
+            Task<X509Certificate2> LoadCertificateFromFileAsync(CertificateSourceOptions options)
         {
             X509Certificate2 cert;
 
@@ -152,7 +156,11 @@ namespace NuGet.Commands
 #endif
             }
 
+#if IS_DESKTOP
             return cert;
+#else
+            return Task.FromResult(cert);
+#endif
         }
 
         private static X509Certificate2Collection LoadCertificateFromStore(CertificateSourceOptions options)

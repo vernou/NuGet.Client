@@ -18,15 +18,15 @@
     <NetStandardVersion>netstandard2.0</NetStandardVersion>
     <TargetFrameworksExe>$(NETFXTargetFramework);$(NETCoreTargetFramework)</TargetFrameworksExe>
     <TargetFrameworksExe Condition="'$(IsXPlat)' == 'true'">$(NETCoreTargetFramework)</TargetFrameworksExe>
-    <TargetFrameworksExeForSigning>$(TargetFrameworksExe);netcoreapp5.0</TargetFrameworksExeForSigning>
-    <TargetFrameworksExeForSigning Condition=" '$(IsXPlat)' == 'true' ">$(NETCoreTargetFramework);netcoreapp5.0</TargetFrameworksExeForSigning>
+    <TargetFrameworksExeForSigning>$(TargetFrameworksExe);net5.0</TargetFrameworksExeForSigning>
+    <TargetFrameworksExeForSigning Condition=" '$(IsXPlat)' == 'true' ">$(NETCoreTargetFramework);net5.0</TargetFrameworksExeForSigning>
     <TargetFrameworksExeForSigning Condition="'$(DotNetBuildFromSource)' == 'true'">$(TargetFrameworksExe)</TargetFrameworksExeForSigning>
-    <MinimalTargetFrameworksExeSigning>$(NETFXTargetFramework);netcoreapp5.0</MinimalTargetFrameworksExeSigning>
-    <MinimalTargetFrameworksExeSigning Condition=" '$(IsXPlat)' == 'true' ">netcoreapp5.0</MinimalTargetFrameworksExeSigning>
+    <MinimalTargetFrameworksExeSigning>$(NETFXTargetFramework);net5.0</MinimalTargetFrameworksExeSigning>
+    <MinimalTargetFrameworksExeSigning Condition=" '$(IsXPlat)' == 'true' ">net5.0</MinimalTargetFrameworksExeSigning>
     <MinimalTargetFrameworksExeSigning Condition="'$(DotNetBuildFromSource)' == 'true'">$(NETCoreTargetFramework)</MinimalTargetFrameworksExeSigning>
     <TargetFrameworksLibrary>$(NETFXTargetFramework);$(NetStandardVersion)</TargetFrameworksLibrary>
     <TargetFrameworksLibrary Condition="'$(DotNetBuildFromSource)' == 'true'">$(NETCoreTargetFramework);$(NetStandardVersion)</TargetFrameworksLibrary>
-    <TargetFrameworksLibraryForSigning>$(TargetFrameworksLibrary);netcoreapp5.0</TargetFrameworksLibraryForSigning>
+    <TargetFrameworksLibraryForSigning>$(TargetFrameworksLibrary);net5.0</TargetFrameworksLibraryForSigning>
     <TargetFrameworksLibraryForSigning Condition="'$(DotNetBuildFromSource)' == 'true'">$(TargetFrameworksLibrary)</TargetFrameworksLibraryForSigning>
     <TargetFrameworksLibraryForCrossVerificationTests>$(NETFXTargetFramework);$(NETCoreTestTargetFrameworks)</TargetFrameworksLibraryForCrossVerificationTests>
     <RepositoryRootDirectory>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\</RepositoryRootDirectory>

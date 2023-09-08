@@ -98,7 +98,9 @@ namespace NuGet.Packaging.Signing
                 Chain?.Dispose();
 
 #if IS_SIGNING_SUPPORTED
+#pragma warning disable CA1416 // Validate platform compatibility
                 PrivateKey?.Dispose();
+#pragma warning restore CA1416 // Validate platform compatibility
 #endif
             }
 

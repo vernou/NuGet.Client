@@ -120,7 +120,9 @@ namespace NuGet.Packaging.Signing
 
             signerInfo.cbSize = (uint)Marshal.SizeOf(signerInfo);
             signerInfo.pCertInfo = MarshalUtility.PtrToStructure<CERT_CONTEXT>(cmsSigner.Certificate.Handle).pCertInfo;
+#pragma warning disable CA1416 // Validate platform compatibility
             signerInfo.hCryptProvOrhNCryptKey = privateKey.Handle.DangerousGetHandle();
+#pragma warning restore CA1416 // Validate platform compatibility
             signerInfo.HashAlgorithm.pszObjId = cmsSigner.DigestAlgorithm.Value;
 
             if (cmsSigner.SignerIdentifierType == SubjectIdentifierType.SubjectKeyIdentifier)
