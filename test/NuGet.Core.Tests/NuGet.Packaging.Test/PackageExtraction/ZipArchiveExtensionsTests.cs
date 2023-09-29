@@ -6,9 +6,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
 using NuGet.Common;
 using NuGet.Test.Utility;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.Packaging.Test.PackageExtraction
@@ -66,7 +68,7 @@ namespace NuGet.Packaging.Test.PackageExtraction
 
         // Trying to change a file timestamp when the file is open only throws on Windows
         [PlatformFact(Platform.Windows)]
-        public async Task UpdateFileTimeFromEntry_FileBusyForLongTime_Throws()
+        public async Task UpdateFileTimeFromEntry_FileBusyForLongTime_ThrowsUnlessRunningOnNet6OrHigher()
         {
             // Arrange
             string tempFile = Path.GetTempFileName();
@@ -85,7 +87,7 @@ namespace NuGet.Packaging.Test.PackageExtraction
                 using FileStream fileStream = File.Open(tempFile, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
                 // Act & Assert
-                await Assert.ThrowsAsync<IOException>(async () =>
+                Func<Task> func = async () =>
                 {
                     Task task = Task.Run(() => zipEntry.UpdateFileTimeFromEntry(tempFile, NullLogger.Instance));
 
@@ -99,12 +101,47 @@ namespace NuGet.Packaging.Test.PackageExtraction
                         throw new TimeoutException();
                     }
                     await completed;
-                });
+                };
+                if (IsRunningOnNet6OrHigher())
+                {
+                    // .NET 6 introduced a breaking change: https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/set-timestamp-readonly-file
+                    // Even though it says it's about read-only files, it also affects files that are open. Interestingly, despite the file being open, changing the
+                    // timestamp succeeds.
+                    await func();
+                    File.GetLastWriteTimeUtc(tempFile).Should().Be(expectedTime);
+                }
+                else
+                {
+                    await Assert.ThrowsAsync<IOException>(func);
+                }
             }
             finally
             {
                 File.Delete(tempFile);
             }
+        }
+
+        /// <summary>Returns a bool signaling if the current runtime is .NET 6 or higher.</summary>
+        /// <returns><see langword="true"/> if the runtime is .NET 6 or higher, <see langword="false"/>otherwise.</returns>
+        /// <remarks>Some NuGet Client SDK packages target net472, netstandard2.0 and net5.0. If our test projects only target
+        /// supported runtimes, then there's no way to test the netstandard2.0 binaries. If our test project targets netcoreapp3.1
+        /// it will reference the netstandard2.0 binaries, but without RollForward, it needs the .NET Core 3.1 runtime installed,
+        /// which triggers alerts in security scanning software. Therefore, we compile for netcoreapp3.1, but use RollForward
+        /// to run the test executable on a different runtime. However, if we use <see langword="#if"/> to only expect exceptions
+        /// on .NET Framework, then anyone who installs the unsupported .NET Core 3.1 or .NET 5 runtime on their machine, then
+        /// this test would incorrectly fail.</remarks>
+        private bool IsRunningOnNet6OrHigher()
+        {
+            var runtimeFramework = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
+            if (runtimeFramework.StartsWith(".NET ")
+                && char.IsDigit(runtimeFramework[5])
+                && NuGetVersion.TryParse(runtimeFramework.Substring(4), out NuGetVersion version)
+                && version >= new NuGetVersion(6, 0, 0))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
