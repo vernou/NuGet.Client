@@ -25,7 +25,6 @@ parameters:
 extends:
   template: templates/dailytests.yml
   parameters:
-    isOfficialBuild: true
     DartLabEnvironment: ${{parameters.DartLabEnvironment}}
     ApexAgentCleanup: ${{parameters.ApexAgentCleanup}}
     NuGetLocalizationType: Full
