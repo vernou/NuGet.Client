@@ -59,7 +59,7 @@ stages:
     - task: DownloadPipelineArtifact@2
       displayName: "Download symbols - NonRTM artifact"
       inputs:
-        source: NuGet.Client-Official
+        source: 'specific'
         project: "devdiv"
         pipeline: "NuGet.Client-Official"
         artifact: "symbols - NonRTM"
