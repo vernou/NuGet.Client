@@ -30,6 +30,11 @@ resources:
   - pipeline: DartLab
     source: DartLab
     branch: main
+  - pipeline: nugetclientprivatedev
+    source: NuGet.Client-PrivateDev
+    trigger:
+        branches:
+          - dev-nkolev92-newPipeline
   repositories:
   - repository: DartLabTemplates
     type: git
@@ -65,6 +70,28 @@ stages:
         scriptType: "inlineScript"
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
+
+- stage: Build_Insertable
+  displayName: Build NuGet inserted into VS and .NET SDK
+  dependsOn: Initialize
+  jobs:
+  - job: Build_and_UnitTest_NonRTM
+    timeoutInMinutes: 170
+    variables:
+      BuildNumber: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.BuildNumber']]
+      FullVstsBuildNumber: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.FullVstsBuildNumber']]
+      VsTargetChannel: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetChannel']]
+      VsTargetChannelForTests: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetChannelForTests']]
+      VsTargetMajorVersion: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetMajorVersion']]
+      BuildRTM: "false"
+      SemanticVersion: $[stageDependencies.Initialize.GetSemanticVersion.outputs['setsemanticversion.SemanticVersion']]
+    pool:
+      name: VSEngSS-MicroBuild2022-1ES
+    steps:
+    - template: Build_and_UnitTest.yml
+      parameters:
+        BuildRTM: false
+        NuGetLocalizationType: ${{ parameters.NuGetLocalizationType }}
 
 
 # Dartlab's template defines this in its own stage
