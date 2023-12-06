@@ -71,29 +71,6 @@ stages:
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
 
-- stage: Build_Insertable
-  displayName: Build NuGet inserted into VS and .NET SDK
-  dependsOn: Initialize
-  jobs:
-  - job: Build_and_UnitTest_NonRTM
-    timeoutInMinutes: 170
-    variables:
-      BuildNumber: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.BuildNumber']]
-      FullVstsBuildNumber: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.FullVstsBuildNumber']]
-      VsTargetChannel: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetChannel']]
-      VsTargetChannelForTests: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetChannelForTests']]
-      VsTargetMajorVersion: $[stageDependencies.Initialize.Initialize_Build.outputs['updatebuildnumber.VsTargetMajorVersion']]
-      BuildRTM: "false"
-      SemanticVersion: $[stageDependencies.Initialize.GetSemanticVersion.outputs['setsemanticversion.SemanticVersion']]
-    pool:
-      name: VSEngSS-MicroBuild2022-1ES
-    steps:
-    - template: Build_and_UnitTest.yml
-      parameters:
-        BuildRTM: false
-        NuGetLocalizationType: ${{ parameters.NuGetLocalizationType }}
-
-
 # Dartlab's template defines this in its own stage
 - template: Apex_Tests_On_Windows.yml
   parameters:
@@ -107,7 +84,7 @@ stages:
       - name: GitHubStatusName
         value: Daily Visual Studio Tests
     isOfficialBuild: ${{parameters.isOfficialBuild}}
-    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId);NuGet.Tests.EndToEnd.runsettings
+    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId);NuGet.Tests.Apex.runsettings
     dartLabEnvironment: ${{parameters.DartLabEnvironment}}
     testExecutionJobTimeoutInMinutes: 150
     bootstrapperUrl: $(VsBootstrapperUrl)
