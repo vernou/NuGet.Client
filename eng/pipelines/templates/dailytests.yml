@@ -71,6 +71,12 @@ stages:
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
 
+    - task: PowerShell@1
+      inputs:
+        scriptName: "$(Build.Repository.LocalPath)\\configure.ps1"
+        arguments: "-Force"
+      displayName: "Run Configure.ps1"
+
     - task: MSBuild@1
       displayName: 'Generate .runsettings files'
       inputs:
