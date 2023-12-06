@@ -70,6 +70,20 @@ stages:
         scriptType: "inlineScript"
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
+    - task: MSBuild@1
+      displayName: 'Generate .runsettings files'
+      inputs:
+      solution: 'build\runsettings.proj'
+      msbuildArguments: '/restore:false /property:OutputPath="$(Build.Repository.LocalPath)\artifacts\RunSettings" /property:TestDrop="RunSettings/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)" /property:ProfilingInputsDrop="ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)" /binarylogger:$(Build.StagingDirectory)\\binlog\\16.GenerateRunSettings.binlog'
+    - task: artifactDropTask@0
+      displayName: 'Publish the .runsettings files to artifact services'
+      inputs:
+        dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+        buildNumber: 'RunSettings/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+        sourcePath: 'artifacts\RunSettings'
+        toLowerCase: false
+        usePat: true
+        dropMetadataContainerName: 'DropMetadata-RunSettings'
 
 # Dartlab's template defines this in its own stage
 - template: Apex_Tests_On_Windows.yml
