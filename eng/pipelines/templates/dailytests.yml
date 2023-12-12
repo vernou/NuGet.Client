@@ -24,10 +24,10 @@ parameters:
   values:
   - Full
   - Pseudo
-- name: SourceBranch
-  displayName: Source Branch
-  type: string
-  default: $(replace(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch,'refs/heads/',''))
+# - name: SourceBranch
+#   displayName: Source Branch
+#   type: string
+#   default: $(replace(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch,'refs/heads/',''))
 
 resources:
   pipelines:
@@ -98,7 +98,7 @@ stages:
           Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
           Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
           Write-Host "pipelineName -- $(resources.pipeline.ComponentBuildUnderTest.pipelineName)"
-          Write-Host ${{ parameters.SourceBranch }}
+          # Write-Host ${{ parameters.SourceBranch }}
           Write-Host $(Pipeline.Workspace)/VS15/bootstrapper/8684543/f5f34b79-f107-43d4-b547-af3db489870a/vs_enterprise.exe
 
 
