@@ -34,7 +34,13 @@ namespace NuGet.PackageManagement.VisualStudio
         public string GetMSBuildProjectExtensionsPath()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             var msbuildProjectExtensionsPath = BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.MSBuildProjectExtensionsPath);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             if (string.IsNullOrEmpty(msbuildProjectExtensionsPath))
             {
@@ -87,12 +93,23 @@ namespace NuGet.PackageManagement.VisualStudio
             get
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
-
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
                 var packageVersion = BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.PackageVersion);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
                 if (string.IsNullOrEmpty(packageVersion))
                 {
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
                     packageVersion = BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.Version);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
                     if (string.IsNullOrEmpty(packageVersion))
                     {
@@ -230,6 +247,9 @@ namespace NuGet.PackageManagement.VisualStudio
             await _threadingService.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var projectPath = FullName;
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             var platformIdentifier = BuildProperties.GetPropertyValueWithDteFallback(
                 ProjectBuildProperties.TargetPlatformIdentifier);
             var platformVersion = BuildProperties.GetPropertyValueWithDteFallback(
@@ -238,6 +258,9 @@ namespace NuGet.PackageManagement.VisualStudio
                 ProjectBuildProperties.TargetPlatformMinVersion);
             var targetFrameworkMoniker = BuildProperties.GetPropertyValueWithDteFallback(
                 ProjectBuildProperties.TargetFrameworkMoniker);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             // Projects supporting TargetFramework and TargetFrameworks are detected before
             // this check. The values can be passed as null here.

@@ -256,11 +256,17 @@ namespace NuGet.PackageManagement.VisualStudio
             return msbuildProjectExtensionsPath;
         }
 
+        [Obsolete("Call GetPropertyValue() instead")]
         private static string GetPropertySafe(IVsProjectBuildProperties projectBuildProperties, string propertyName)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             var value = projectBuildProperties.GetPropertyValueWithDteFallback(propertyName);
-
+#if DEBUG
+#pragma warning restore 0618
+#endif
             if (string.IsNullOrWhiteSpace(value))
             {
                 return null;
@@ -272,7 +278,9 @@ namespace NuGet.PackageManagement.VisualStudio
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             var packagePath = GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestorePackagesPath);
+#pragma warning restore
 
             if (string.IsNullOrWhiteSpace(packagePath))
             {
@@ -286,7 +294,9 @@ namespace NuGet.PackageManagement.VisualStudio
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             var sources = MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestoreSources)).AsEnumerable();
+#pragma warning restore
 
             if (ShouldReadFromSettings(sources))
             {
@@ -297,8 +307,10 @@ namespace NuGet.PackageManagement.VisualStudio
                 sources = VSRestoreSettingsUtilities.HandleClear(sources);
             }
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             // Add additional sources
             sources = sources.Concat(MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestoreAdditionalProjectSources)));
+#pragma warning restore
 
             return sources.Select(e => new PackageSource(UriUtility.GetAbsolutePathFromFile(ProjectFullPath, e))).ToList();
         }
@@ -307,7 +319,9 @@ namespace NuGet.PackageManagement.VisualStudio
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             var fallbackFolders = MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestoreFallbackFolders)).AsEnumerable();
+#pragma warning restore
 
             if (ShouldReadFromSettings(fallbackFolders))
             {
@@ -318,8 +332,10 @@ namespace NuGet.PackageManagement.VisualStudio
                 fallbackFolders = VSRestoreSettingsUtilities.HandleClear(fallbackFolders);
             }
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             // Add additional fallback folders
             fallbackFolders = fallbackFolders.Concat(MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestoreAdditionalProjectFallbackFolders)));
+#pragma warning restore
 
             return fallbackFolders.Select(e => UriUtility.GetAbsolutePathFromFile(ProjectFullPath, e)).ToList();
         }
@@ -352,6 +368,7 @@ namespace NuGet.PackageManagement.VisualStudio
                 .GetPackageReferencesAsync(targetFramework, CancellationToken.None))
                 .ToList();
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             var packageTargetFallback = MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.PackageTargetFallback))
                 .Select(NuGetFramework.Parse)
                 .ToList();
@@ -359,6 +376,7 @@ namespace NuGet.PackageManagement.VisualStudio
             var assetTargetFallback = MSBuildStringUtility.Split(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.AssetTargetFallback))
                 .Select(NuGetFramework.Parse)
                 .ToList();
+#pragma warning restore
 
             var projectTfi = new TargetFrameworkInformation
             {
@@ -366,7 +384,9 @@ namespace NuGet.PackageManagement.VisualStudio
                 Dependencies = packageReferences,
             };
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             bool isCpvmEnabled = MSBuildStringUtility.IsTrue(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.ManagePackageVersionsCentrally));
+#pragma warning restore
             if (isCpvmEnabled)
             {
                 // Add the central version information and merge the information to the package reference dependencies
@@ -379,10 +399,12 @@ namespace NuGet.PackageManagement.VisualStudio
 
             // Build up runtime information.
 
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
             var runtimes = GetRuntimeIdentifiers(
-                GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RuntimeIdentifier),
+            GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RuntimeIdentifier),
                 GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RuntimeIdentifiers));
             var supports = GetRuntimeSupports(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RuntimeSupports));
+#pragma warning restore
             var runtimeGraph = new RuntimeGraph(runtimes, supports);
 
             // In legacy CSProj, we only have one target framework per project
@@ -390,7 +412,13 @@ namespace NuGet.PackageManagement.VisualStudio
 
             var projectName = ProjectName ?? ProjectUniqueName;
 
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             string specifiedPackageId = _vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.PackageId);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             if (!string.IsNullOrWhiteSpace(specifiedPackageId))
             {
@@ -398,7 +426,13 @@ namespace NuGet.PackageManagement.VisualStudio
             }
             else
             {
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
                 string specifiedAssemblyName = _vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.AssemblyName);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
                 if (!string.IsNullOrWhiteSpace(specifiedAssemblyName))
                 {
@@ -449,17 +483,37 @@ namespace NuGet.PackageManagement.VisualStudio
                     FallbackFolders = GetFallbackFolders(settings),
                     ConfigFilePaths = GetConfigFilePaths(settings),
                     ProjectWideWarningProperties = WarningProperties.GetWarningProperties(
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         treatWarningsAsErrors: GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.TreatWarningsAsErrors),
+#pragma warning restore
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         noWarn: GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.NoWarn),
+#pragma warning restore
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         warningsAsErrors: GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.WarningsAsErrors),
+#pragma warning restore
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         warningsNotAsErrors: GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.WarningsNotAsErrors)),
+#pragma warning restore
                     RestoreLockProperties = new RestoreLockProperties(
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestorePackagesWithLockFile),
+#pragma warning restore
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.NuGetLockFilePath),
+#pragma warning restore
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                         MSBuildStringUtility.IsTrue(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.RestoreLockedMode))),
+#pragma warning restore
+
                     CentralPackageVersionsEnabled = isCpvmEnabled,
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                     CentralPackageVersionOverrideDisabled = GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.CentralPackageVersionOverrideEnabled).EqualsFalse(),
+#pragma warning restore
+                    CentralPackageFloatingVersionsEnabled = MSBuildStringUtility.IsTrue(_vsProjectAdapter.BuildProperties.GetPropertyValue(ProjectBuildProperties.CentralPackageFloatingVersionsEnabled)),
+#pragma warning disable 0618 // Legacy usage of GetPropertySafe() still allowed but banned going forward
                     CentralPackageTransitivePinningEnabled = MSBuildStringUtility.IsTrue(GetPropertySafe(_vsProjectAdapter.BuildProperties, ProjectBuildProperties.CentralPackageTransitivePinningEnabled)),
+#pragma warning restore
                     RestoreAuditProperties = auditProperties,
                 }
             };

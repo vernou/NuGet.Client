@@ -43,7 +43,13 @@ namespace NuGet.PackageManagement.VisualStudio
         protected override async Task<string> GetMSBuildProjectExtensionsPathAsync()
         {
             await NuGetUIThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             var msbuildProjectExtensionsPath = _vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.MSBuildProjectExtensionsPath);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             if (string.IsNullOrEmpty(msbuildProjectExtensionsPath))
             {
@@ -72,6 +78,9 @@ namespace NuGet.PackageManagement.VisualStudio
                 var jsonTargetFramework = targetFramework as NuGetFramework;
                 if (IsUAPFramework(jsonTargetFramework))
                 {
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
                     var platformMinVersionString = _vsProjectAdapter
                         .BuildProperties
                         .GetPropertyValueWithDteFallback(ProjectBuildProperties.TargetPlatformMinVersion);
@@ -83,6 +92,9 @@ namespace NuGet.PackageManagement.VisualStudio
                     var targetFrameworkMonikerString = _vsProjectAdapter
                         .BuildProperties
                         .GetPropertyValueWithDteFallback(ProjectBuildProperties.TargetFrameworkMoniker);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
                     var targetFrameworkMoniker = !string.IsNullOrWhiteSpace(targetFrameworkMonikerString)
                         ? NuGetFramework.Parse(targetFrameworkMonikerString)

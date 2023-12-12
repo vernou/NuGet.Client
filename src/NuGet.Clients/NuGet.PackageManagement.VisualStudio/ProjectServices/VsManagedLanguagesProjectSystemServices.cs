@@ -338,7 +338,13 @@ namespace NuGet.PackageManagement.VisualStudio
         private bool IsCentralPackageManagementVersionsEnabled()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             return MSBuildStringUtility.IsTrue(_vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.ManagePackageVersionsCentrally));
+#if DEBUG
+#pragma warning restore 0618
+#endif
         }
 
         private class ProjectReference

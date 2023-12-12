@@ -75,8 +75,14 @@ namespace NuGet.PackageManagement.VisualStudio
 
             var buildProperties = vsProject.BuildProperties;
 
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             // read MSBuild property RestoreProjectStyle
             var restoreProjectStyle = buildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.RestoreProjectStyle);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             // check for RestoreProjectStyle property is set and if not set to PackageReference then return false
             if (!(string.IsNullOrEmpty(restoreProjectStyle) ||

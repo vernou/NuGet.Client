@@ -93,9 +93,14 @@ namespace NuGet.PackageManagement.VisualStudio
                 return null;
             }
 
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
             // Check for RestoreProjectStyle property
-            var restoreProjectStyle = vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(
-                ProjectBuildProperties.RestoreProjectStyle);
+            var restoreProjectStyle = vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(ProjectBuildProperties.RestoreProjectStyle);
+#if DEBUG
+#pragma warning restore 0618
+#endif
 
             // For legacy csproj, either the RestoreProjectStyle must be set to PackageReference or
             // project has atleast one package dependency defined as PackageReference

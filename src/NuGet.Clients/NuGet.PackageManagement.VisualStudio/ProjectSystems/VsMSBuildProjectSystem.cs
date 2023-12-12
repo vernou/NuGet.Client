@@ -405,8 +405,13 @@ namespace NuGet.PackageManagement.VisualStudio
             {
                 await NuGetUIThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+#if DEBUG
+#pragma warning disable 0618 // Legacy usage of GetPropertyValueWithDteFallback still allowed but banned going forward
+#endif
                 return VsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(propertyName);
-
+#if DEBUG
+#pragma warning restore 0618
+#endif
             });
         }
 
