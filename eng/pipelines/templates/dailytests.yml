@@ -85,6 +85,7 @@ stages:
           Write-Host "runID -- $(Resources.Pipeline.ComponentBuildUnderTest.runID)"
           Write-Host "runURI -- $(Resources.Pipeline.ComponentBuildUnderTest.runURI)"
           Write-Host "sourceBranch -- $(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch)"
+          Write-Host "sourceBranchName -- $(Resources.Pipeline.ComponentBuildUnderTest.sourceBranchName)"
           Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
           Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
           Write-Host "pipelineName -- $(resources.pipeline.ComponentBuildUnderTest.pipelineName)"
