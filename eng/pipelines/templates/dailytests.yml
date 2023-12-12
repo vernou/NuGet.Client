@@ -84,7 +84,7 @@ stages:
           Write-Host "runName -- $(Resources.Pipeline.ComponentBuildUnderTest.runName)"
           Write-Host "runID -- $(Resources.Pipeline.ComponentBuildUnderTest.runID)"
           Write-Host "runURI -- $(Resources.Pipeline.ComponentBuildUnderTest.runURI)"
-          Write-Host "sourceBranch -- $(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch))"
+          Write-Host "sourceBranch -- ($(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch))).Replace("refs/heads/","")"
           Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
           Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
           Write-Host "pipelineName -- $(resources.pipeline.ComponentBuildUnderTest.pipelineName)"
