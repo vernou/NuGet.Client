@@ -88,7 +88,7 @@ stages:
           Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
           Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
           Write-Host "pipelineName -- $(resources.pipeline.ComponentBuildUnderTest.pipelineName)"
-
+          
 # Dartlab's template defines this in its own stage
 - template: Apex_Tests_On_Windows.yml
   parameters:
@@ -101,7 +101,7 @@ stages:
       - name: GitHubStatusName
         value: Daily Visual Studio Tests
     isOfficialBuild: ${{parameters.isOfficialBuild}}
-    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/DevDiv/NuGet-NuGet.Client-Trusted/replace(${{parameters.sourceBranch}},'refs/heads/','')/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings
+    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/DevDiv/NuGet-NuGet.Client-Trusted/${{ replace(parameters.sourceBranch,'refs/heads/','')}}/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings
     dartLabEnvironment: ${{parameters.DartLabEnvironment}}
     testExecutionJobTimeoutInMinutes: 150
     bootstrapperUrl: $(VsBootstrapperUrl)
