@@ -27,7 +27,7 @@ parameters:
 - name: SourceBranch
   displayName: Source Branch
   type: string
-  default: ${{ replace($(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch),'refs/heads/','')}}
+  default: replace($(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch),'refs/heads/','')
 
 resources:
   pipelines:
