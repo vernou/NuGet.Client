@@ -27,7 +27,7 @@ parameters:
 - name: SourceBranch
   displayName: Source Branch
   type: string
-  default: replace($(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch),'refs/heads/','')
+  default: $(replace(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch,'refs/heads/',''))
 
 resources:
   pipelines:
@@ -75,6 +75,16 @@ stages:
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
 
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download product NonRTM'
+      continueOnError: true # in case build didn't publish this artifact
+      inputs:
+        buildType: specific
+        project: $(resources.pipeline.ComponentBuildUnderTest.projectID)
+        definition: $(resources.pipeline.ComponentBuildUnderTest.pipelineID)
+        artifactName: 'VS15'
+        Path: $(Pipeline.Workspace)/VS15
+
     - task: PowerShell@2
       displayName: 'Get Triggering Build Info'
       inputs:
@@ -88,7 +98,10 @@ stages:
           Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
           Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
           Write-Host "pipelineName -- $(resources.pipeline.ComponentBuildUnderTest.pipelineName)"
-          Write-Host SourceBranch
+          Write-Host ${{ parameters.SourceBranch }}
+          Write-Host $(Pipeline.Workspace)/VS15/bootstrapper/8684543/f5f34b79-f107-43d4-b547-af3db489870a/vs_enterprise.exe
+
+
 
 # Dartlab's template defines this in its own stage
 - template: Apex_Tests_On_Windows.yml
@@ -98,11 +111,11 @@ stages:
       - Initialize
     variables:
       - name: VsBootstrapperUrl
-        value: $[stageDependencies.Build_Insertable.Build_and_UnitTest_NonRTM.outputs['vsbootstrapper.bootstrapperUrl']]
+        value: $(Pipeline.Workspace)/VS15/bootstrapper/8684543/f5f34b79-f107-43d4-b547-af3db489870a/vs_enterprise.exe
       - name: GitHubStatusName
         value: Daily Visual Studio Tests
     isOfficialBuild: ${{parameters.isOfficialBuild}}
-    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/DevDiv/NuGet-NuGet.Client-Trusted/${{parameters.sourceBranch}}/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings
+    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/DevDiv/NuGet-NuGet.Client-Trusted/dev/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings
     dartLabEnvironment: ${{parameters.DartLabEnvironment}}
     testExecutionJobTimeoutInMinutes: 150
     bootstrapperUrl: $(VsBootstrapperUrl)
