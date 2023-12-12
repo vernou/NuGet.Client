@@ -71,6 +71,19 @@ stages:
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
 
+    - task: PowerShell@2
+      displayName: 'Get Triggering Build Info'
+      inputs:
+        targetType: inline
+        script: |
+          Write-Host "Logging the metadata of the triggering build:"
+          Write-Host "runName -- $(Resources.Pipeline.ComponentBuildUnderTest.runName)"
+          Write-Host "runID -- $(Resources.Pipeline.ComponentBuildUnderTest.runID)"
+          Write-Host "runURI -- $(Resources.Pipeline.ComponentBuildUnderTest.runURI)"
+          Write-Host "sourceBranch -- $(Resources.Pipeline.ComponentBuildUnderTest.sourceBranch)"
+          Write-Host "projectID -- $(Resources.Pipeline.ComponentBuildUnderTest.ProjectID)"
+          Write-Host "pipelineID -- $(resources.pipeline.ComponentBuildUnderTest.pipelineID)"
+
 # Dartlab's template defines this in its own stage
 - template: Apex_Tests_On_Windows.yml
   parameters:
