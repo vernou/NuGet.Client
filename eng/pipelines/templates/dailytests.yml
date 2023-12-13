@@ -100,7 +100,7 @@ stages:
       - Initialize
     variables:
       - name: VsBootstrapperUrl
-        value: $(Pipeline.Workspace)/VS15/bootstrapper/8684543/f5f34b79-f107-43d4-b547-af3db489870a/vs_enterprise.exe
+        value: $[dependencies.TestMachineConfiguration.outputs['SetBootstrapperURI.BootstrapperUrl']]
       - name: GitHubStatusName
         value: Daily Visual Studio Tests
       - name: RunSettingsURI
@@ -131,6 +131,30 @@ stages:
         }
       displayName: 'Set RunSettingsURI variable'
       name: SetRunSettingsURI
+
+    - download: ComponentBuildUnderTest
+      artifact: MicroBuildOutputs
+      displayName: 'Download BootstrapperInfo.json'
+
+    - powershell: |
+        try {
+          Write-Host "Set VSBranch, VsTargetChannel &  VsTargetMajorVersion variables"
+          $bootstrapperInfoJsonFilePath = "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\BootstrapperInfo.json"
+
+          Write-Host "BootstrapperInfo.json drop URI:  $bootstrapperInfoJsonFilePath"
+          $bootstrapperInfoJson = (Get-Content $bootstrapperInfoJsonFilePath -Raw) | ConvertFrom-Json
+          $bootstrapperUrl = $bootstrapperInfoJson.bootstrapperUrl
+
+          Set-AzurePipelinesVariable 'VsBootstrapperUrl' $bootstrapperUrl
+          Set-AzurePipelinesVariable -IsOutput 'BootstrapperUrl' $bootstrapperUrl
+        }
+        catch {
+          Write-Host $_
+          Write-Error "Failed to set VsBootstrapperUrl pipeline variables"
+          throw
+        }
+      displayName: 'Set BootstrapperURI variable'
+      name: SetBootstrapperURI
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download product NonRTM'
