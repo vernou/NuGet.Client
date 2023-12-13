@@ -75,16 +75,6 @@ stages:
         inlineScript: |
           Get-ChildItem $(Pipeline.Workspace)\symbols\NonRTM
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download product NonRTM'
-      continueOnError: true # in case build didn't publish this artifact
-      inputs:
-        buildType: specific
-        project: $(resources.pipeline.ComponentBuildUnderTest.projectID)
-        definition: $(resources.pipeline.ComponentBuildUnderTest.pipelineID)
-        artifactName: 'VS15'
-        Path: $(Pipeline.Workspace)/VS15
-
     - task: PowerShell@2
       displayName: 'Get Triggering Build Info'
       inputs:
@@ -113,9 +103,41 @@ stages:
         value: $(Pipeline.Workspace)/VS15/bootstrapper/8684543/f5f34b79-f107-43d4-b547-af3db489870a/vs_enterprise.exe
       - name: GitHubStatusName
         value: Daily Visual Studio Tests
+      - name: RunSettingsURI
+        value: $[dependencies.TestMachineConfiguration.outputs['SetRunSettingsURI.RunSettingsURI']]
     isOfficialBuild: ${{parameters.isOfficialBuild}}
-    runSettingsURI: https://vsdrop.corp.microsoft.com/file/v1/RunSettings/DevDiv/NuGet-NuGet.Client-Trusted/dev/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings
+    runSettingsURI: $(RunSettingsURI)
     dartLabEnvironment: ${{parameters.DartLabEnvironment}}
     testExecutionJobTimeoutInMinutes: 150
     bootstrapperUrl: $(VsBootstrapperUrl)
-    testMachineCleanUpStrategy: ${{replace(parameters.ApexAgentCleanup,'ddd','')}}
+    testMachineCleanUpStrategy: ${{parameters.ApexAgentCleanup}}
+    preTestMachineConfigurationStepList:
+    - powershell : |
+        try {
+          $branchName = "$(resources.pipeline.ComponentBuildUnderTest.sourceBranch)"
+          $branchName = $branchName.Replace('refs/heads/', '')
+
+          $RunSettingsURI = "https://vsdrop.corp.microsoft.com/file/v1/RunSettings/$(System.TeamProject)/NuGet-NuGet.Client-Trusted/$branchName/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings"
+          Write-Host "RunSettingsURI: $RunSettingsURI"
+          # non-output variable for VS config in the configure machine job
+          # output variable for test execution job
+          Set-AzurePipelinesVariable 'RunSettingsURI' $RunSettingsURI
+          Set-AzurePipelinesVariable -IsOutput 'RunSettingsURI' $RunSettingsURI
+        }
+        catch {
+          Write-Host $_
+          Write-Error "Failed to set SourceBranchName pipeline variable"
+          throw
+        }
+      displayName: 'Set RunSettingsURI variable'
+      name: SetRunSettingsURI
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download product NonRTM'
+      continueOnError: true # in case build didn't publish this artifact
+      inputs:
+        buildType: specific
+        project: $(resources.pipeline.ComponentBuildUnderTest.projectID)
+        definition: $(resources.pipeline.ComponentBuildUnderTest.pipelineID)
+        artifactName: 'VS15'
+        Path: $(Pipeline.Workspace)/VS15
