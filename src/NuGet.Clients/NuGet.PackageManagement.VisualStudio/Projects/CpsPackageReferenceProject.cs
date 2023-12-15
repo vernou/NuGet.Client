@@ -282,12 +282,7 @@ namespace NuGet.PackageManagement.VisualStudio
 
                 foreach (var framework in installationContext.SuccessfulFrameworks)
                 {
-                    string originalFramework;
-                    if (!installationContext.OriginalFrameworks.TryGetValue(framework, out originalFramework))
-                    {
-                        originalFramework = framework.GetShortFolderName();
-                    }
-
+                    string originalFramework = installationContext.OriginalFrameworks[framework];
                     var reference = await conditionalService.AddAsync(
                         packageId,
                         formattedRange,
@@ -386,11 +381,7 @@ namespace NuGet.PackageManagement.VisualStudio
 
                 foreach (var framework in installationContext.SuccessfulFrameworks)
                 {
-                    string originalFramework;
-                    if (!installationContext.OriginalFrameworks.TryGetValue(framework, out originalFramework))
-                    {
-                        originalFramework = framework.GetShortFolderName();
-                    }
+                    string originalFramework = installationContext.OriginalFrameworks[framework];
                     await conditionalService.RemoveAsync(packageId, TargetFrameworkCondition, originalFramework);
                 }
             }
