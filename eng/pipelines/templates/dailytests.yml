@@ -116,7 +116,7 @@ stages:
     bootstrapperUrl: $(VsBootstrapperUrl)
     testMachineCleanUpStrategy: ${{parameters.ApexAgentCleanup}}
     preTestMachineConfigurationStepList:
-      - task: PowerShell@1
+      - task: PowerShell@2
         displayName: "Set CloudBuild Session ID variable for tests"
         name: "setcloudbuildsessionid"
         continueOnError: true
@@ -132,7 +132,7 @@ stages:
           Write-Host "##vso[task.LogIssue type=error;]Unable to set CloudBuild Session ID: $_"
           }
 
-      - task: PowerShell@1
+      - task: PowerShell@2
         displayName: "Set Base Build Drop variable for tests"
         name: "setbasebuilddrop"
         continueOnError: true

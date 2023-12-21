@@ -22,8 +22,6 @@ parameters:
   - name: isOfficialBuild
     type: boolean
     default: false
-  - name: QBuildSessionId
-    type: string
   - name: preTestMachineConfigurationStepList
     type: stepList
     default: []
