@@ -121,32 +121,32 @@ stages:
         name: "setcloudbuildsessionid"
         continueOnError: true
         inputs:
-        scriptType: "inlineScript"
-        inlineScript: |
-          try {
-            $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
-            $qBuildSessionId = $json[0].QBuildSessionId;
-            Write-Host "CloudBuild Session ID: $qBuildSessionId"
-            Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
-          } catch {
-          Write-Host "##vso[task.LogIssue type=error;]Unable to set CloudBuild Session ID: $_"
-          }
+          scriptType: "inlineScript"
+          inlineScript: |
+            try {
+              $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
+              $qBuildSessionId = $json[0].QBuildSessionId;
+              Write-Host "CloudBuild Session ID: $qBuildSessionId"
+              Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
+            } catch {
+            Write-Host "##vso[task.LogIssue type=error;]Unable to set CloudBuild Session ID: $_"
+            }
 
       - task: PowerShell@2
         displayName: "Set Base Build Drop variable for tests"
         name: "setbasebuilddrop"
         continueOnError: true
         inputs:
-        scriptType: "inlineScript"
-        inlineScript: |
-          try {
-            $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
-            $buildDrop = $json[0].BuildDrop;
-            Write-Host "Base Build Drop: $buildDrop"
-            Write-Host "##vso[task.setvariable variable=BaseBuildDrop;isOutput=true]$buildDrop"
-          } catch {
-          Write-Host "##vso[task.LogIssue type=error;]Unable to set Base Build Drop: $_"
-          }
+          scriptType: "inlineScript"
+          inlineScript: |
+            try {
+              $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
+              $buildDrop = $json[0].BuildDrop;
+              Write-Host "Base Build Drop: $buildDrop"
+              Write-Host "##vso[task.setvariable variable=BaseBuildDrop;isOutput=true]$buildDrop"
+            } catch {
+            Write-Host "##vso[task.LogIssue type=error;]Unable to set Base Build Drop: $_"
+            }
 
       - template: \steps\powershell\execute-script.yml@DartLabTemplates
         parameters:
@@ -215,24 +215,24 @@ stages:
         displayName: 'Set RunSettingsURI variable'
         name: SetRunSettingsURI
         inputs:
-        targetType: 'inline'
-        script: |
-          try {
-            $branchName = "$(resources.pipeline.ComponentBuildUnderTest.sourceBranch)"
-            $branchName = $branchName.Replace('refs/heads/', '')
+          targetType: 'inline'
+          script: |
+            try {
+              $branchName = "$(resources.pipeline.ComponentBuildUnderTest.sourceBranch)"
+              $branchName = $branchName.Replace('refs/heads/', '')
 
-            $RunSettingsURI = "https://vsdrop.corp.microsoft.com/file/v1/RunSettings/$(System.TeamProject)/NuGet-NuGet.Client-Trusted/$branchName/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings"
-            Write-Host "RunSettingsURI: $RunSettingsURI"
-            # non-output variable for VS config in the configure machine job
-            # output variable for test execution job
-            Set-AzurePipelinesVariable 'RunSettingsURI' $RunSettingsURI
-            Set-AzurePipelinesVariable -IsOutput 'RunSettingsURI' $RunSettingsURI
-          }
-          catch {
-          Write-Host $_
-          Write-Error "Failed to set SourceBranchName pipeline variable"
-          throw
-          }
+              $RunSettingsURI = "https://vsdrop.corp.microsoft.com/file/v1/RunSettings/$(System.TeamProject)/NuGet-NuGet.Client-Trusted/$branchName/$(resources.pipeline.ComponentBuildUnderTest.runID);NuGet.Tests.Apex.runsettings"
+              Write-Host "RunSettingsURI: $RunSettingsURI"
+              # non-output variable for VS config in the configure machine job
+              # output variable for test execution job
+              Set-AzurePipelinesVariable 'RunSettingsURI' $RunSettingsURI
+              Set-AzurePipelinesVariable -IsOutput 'RunSettingsURI' $RunSettingsURI
+            }
+            catch {
+            Write-Host $_
+            Write-Error "Failed to set SourceBranchName pipeline variable"
+            throw
+            }
 
       - download: ComponentBuildUnderTest
         artifact: MicroBuildOutputs
