@@ -22,6 +22,8 @@ parameters:
   - name: isOfficialBuild
     type: boolean
     default: false
+  - name: QBuildSessionId
+    type: string
   - name: preTestMachineConfigurationStepList
     type: stepList
     default: []
@@ -38,7 +40,9 @@ stages:
           value: ${{parameters.bootstrapperUrl}}
         - ${{parameters.variables}}
       runSettingsURI: ${{parameters.runSettingsURI}}
-      visualStudioBootstrapperURI: $(bootstrapperUrl)
+      visualStudioBootstrapperURI: $(bootstrapperUrl)  
+      baseVisualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BaseBuild.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
+      candidateBaselineBuilds: $(BaselineBuildCommitIds)
       testLabPoolName: VS-Platform
       dartLabEnvironment: ${{parameters.DartLabEnvironment}}
       visualStudioSigning: Test
