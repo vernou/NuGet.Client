@@ -116,6 +116,33 @@ stages:
     bootstrapperUrl: $(VsBootstrapperUrl)
     testMachineCleanUpStrategy: ${{parameters.ApexAgentCleanup}}
     preTestMachineConfigurationStepList:
+      - download: ComponentBuildUnderTest
+        artifact: MicroBuildOutputs
+        displayName: 'Download BootstrapperInfo.json'
+
+      - task: PowerShell@2 
+        displayName: 'Set BootstrapperURI variable'
+        name: SetBootstrapperURIinputs
+        inputs:
+          targetType: 'inline'
+          script: |
+            try {
+            Write-Host "Set VSBranch, VsTargetChannel &  VsTargetMajorVersion variables"
+            $bootstrapperInfoJsonFilePath = "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\BootstrapperInfo.json"
+
+            Write-Host "BootstrapperInfo.json drop URI:  $bootstrapperInfoJsonFilePath"
+            $bootstrapperInfoJson = (Get-Content $bootstrapperInfoJsonFilePath -Raw) | ConvertFrom-Json
+            $bootstrapperUrl = $bootstrapperInfoJson.bootstrapperUrl
+
+            Set-AzurePipelinesVariable 'VsBootstrapperUrl' $bootstrapperUrl
+            Set-AzurePipelinesVariable -IsOutput 'BootstrapperUrl' $bootstrapperUrl
+            }
+            catch {
+            Write-Host $_
+            Write-Error "Failed to set VsBootstrapperUrl pipeline variables"
+            throw
+            }
+
       - task: PowerShell@2
         displayName: "Set CloudBuild Session ID variable for tests"
         name: "setcloudbuildsessionid"
@@ -231,33 +258,6 @@ stages:
             catch {
             Write-Host $_
             Write-Error "Failed to set SourceBranchName pipeline variable"
-            throw
-            }
-
-      - download: ComponentBuildUnderTest
-        artifact: MicroBuildOutputs
-        displayName: 'Download BootstrapperInfo.json'
-
-      - task: PowerShell@2 
-        displayName: 'Set BootstrapperURI variable'
-        name: SetBootstrapperURIinputs
-        inputs:
-          targetType: 'inline'
-          script: |
-            try {
-            Write-Host "Set VSBranch, VsTargetChannel &  VsTargetMajorVersion variables"
-            $bootstrapperInfoJsonFilePath = "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\BootstrapperInfo.json"
-
-            Write-Host "BootstrapperInfo.json drop URI:  $bootstrapperInfoJsonFilePath"
-            $bootstrapperInfoJson = (Get-Content $bootstrapperInfoJsonFilePath -Raw) | ConvertFrom-Json
-            $bootstrapperUrl = $bootstrapperInfoJson.bootstrapperUrl
-
-            Set-AzurePipelinesVariable 'VsBootstrapperUrl' $bootstrapperUrl
-            Set-AzurePipelinesVariable -IsOutput 'BootstrapperUrl' $bootstrapperUrl
-            }
-            catch {
-            Write-Host $_
-            Write-Error "Failed to set VsBootstrapperUrl pipeline variables"
             throw
             }
 
