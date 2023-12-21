@@ -121,8 +121,8 @@ stages:
         name: "setcloudbuildsessionid"
         continueOnError: true
         inputs:
-          scriptType: "inlineScript"
-          inlineScript: |
+          targetType: "inline"
+          Script: |
             try {
               $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
               $qBuildSessionId = $json[0].QBuildSessionId;
@@ -137,8 +137,8 @@ stages:
         name: "setbasebuilddrop"
         continueOnError: true
         inputs:
-          scriptType: "inlineScript"
-          inlineScript: |
+          targetType: "inline"
+          Script: |
             try {
               $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
               $buildDrop = $json[0].BuildDrop;
