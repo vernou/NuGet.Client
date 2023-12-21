@@ -241,24 +241,25 @@ stages:
       - task: PowerShell@2 
         displayName: 'Set BootstrapperURI variable'
         name: SetBootstrapperURIinputs
-        targetType: 'inline'
-        script: |
-          try {
-          Write-Host "Set VSBranch, VsTargetChannel &  VsTargetMajorVersion variables"
-          $bootstrapperInfoJsonFilePath = "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\BootstrapperInfo.json"
+        inputs:
+          targetType: 'inline'
+          script: |
+            try {
+            Write-Host "Set VSBranch, VsTargetChannel &  VsTargetMajorVersion variables"
+            $bootstrapperInfoJsonFilePath = "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\BootstrapperInfo.json"
 
-          Write-Host "BootstrapperInfo.json drop URI:  $bootstrapperInfoJsonFilePath"
-          $bootstrapperInfoJson = (Get-Content $bootstrapperInfoJsonFilePath -Raw) | ConvertFrom-Json
-          $bootstrapperUrl = $bootstrapperInfoJson.bootstrapperUrl
+            Write-Host "BootstrapperInfo.json drop URI:  $bootstrapperInfoJsonFilePath"
+            $bootstrapperInfoJson = (Get-Content $bootstrapperInfoJsonFilePath -Raw) | ConvertFrom-Json
+            $bootstrapperUrl = $bootstrapperInfoJson.bootstrapperUrl
 
-          Set-AzurePipelinesVariable 'VsBootstrapperUrl' $bootstrapperUrl
-          Set-AzurePipelinesVariable -IsOutput 'BootstrapperUrl' $bootstrapperUrl
-          }
-          catch {
-          Write-Host $_
-          Write-Error "Failed to set VsBootstrapperUrl pipeline variables"
-          throw
-          }
+            Set-AzurePipelinesVariable 'VsBootstrapperUrl' $bootstrapperUrl
+            Set-AzurePipelinesVariable -IsOutput 'BootstrapperUrl' $bootstrapperUrl
+            }
+            catch {
+            Write-Host $_
+            Write-Error "Failed to set VsBootstrapperUrl pipeline variables"
+            throw
+            }
 
       - task: DownloadPipelineArtifact@2
         displayName: 'Download product NonRTM'
