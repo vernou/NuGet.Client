@@ -106,7 +106,7 @@ stages:
       - name: RunSettingsURI
         value: $[dependencies.TestMachineConfiguration.outputs['SetRunSettingsURI.RunSettingsURI']]
       - name: QBuildSessionId
-        value: $[dependencies.TestMachineConfiguration.outputs['setcloudbuildsessionid.QBuildSessionId']]
+        value: $[dependencies.TestMachineConfiguration.outputs['setcloudbuildsessionid.BuildSessionId']]
       - name: VsBaseBuildDrop
         value: $[dependencies.TestMachineConfiguration.outputs['setbasebuilddrop.BaseBuildDrop']]
     isOfficialBuild: ${{parameters.isOfficialBuild}}
@@ -154,7 +154,9 @@ stages:
               $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
               $qBuildSessionId = $json[0].QBuildSessionId;
               Write-Host "CloudBuild Session ID: $qBuildSessionId"
-              Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
+              Set-AzurePipelinesVariable 'QBuildSessionId' $qBuildSessionId
+              Set-AzurePipelinesVariable -IsOutput 'BuildSessionId' $qBuildSessionId
+              # Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
             } catch {
             Write-Host "##vso[task.LogIssue type=error;]Unable to set CloudBuild Session ID: $_"
             }

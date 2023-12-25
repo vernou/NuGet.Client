@@ -44,6 +44,7 @@ stages:
       testLabPoolName: VS-Platform
       dartLabEnvironment: ${{parameters.DartLabEnvironment}}
       visualStudioSigning: Test
+      testMachineConfigurationJobTimeoutInMinutes: 20
       testMachineDeploymentJobTimeoutInMinutes: 240
       testMachineConfigurationJobDisplayName: 'Apex Test Machine Configuration'
       testMachineDeploymentJobDisplayName: 'Apex Test Machine Deployment'
