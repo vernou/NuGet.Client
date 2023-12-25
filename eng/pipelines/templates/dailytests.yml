@@ -154,12 +154,14 @@ stages:
               $json = Get-Content "$(Pipeline.Workspace)\ComponentBuildUnderTest\MicroBuildOutputs\Bootstrapperinfo.json" | ConvertFrom-Json
               $qBuildSessionId = $json[0].QBuildSessionId;
               Write-Host "CloudBuild Session ID: $qBuildSessionId"
-              Set-AzurePipelinesVariable 'QBuildSessionId' $qBuildSessionId
-              Set-AzurePipelinesVariable -IsOutput 'BuildSessionId' $qBuildSessionId
-              # Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
+              # Set-AzurePipelinesVariable 'QBuildSessionId' $qBuildSessionId
+              # Set-AzurePipelinesVariable -IsOutput 'BuildSessionId' $qBuildSessionId
+              Write-Host "##vso[task.setvariable variable=QBuildSessionId;isOutput=true]$qBuildSessionId"
             } catch {
             Write-Host "##vso[task.LogIssue type=error;]Unable to set CloudBuild Session ID: $_"
             }
+      - powershell: |
+          Write-Host $(setcloudbuildsessionid.QBuildSessionId)
 
       - task: PowerShell@2
         displayName: "Set Base Build Drop variable for tests"
@@ -177,12 +179,15 @@ stages:
             Write-Host "##vso[task.LogIssue type=error;]Unable to set Base Build Drop: $_"
             }
 
+      - powershell: |
+          Write-Host $(setbasebuilddrop.BaseBuildDrop)
+
       - template: \steps\powershell\execute-script.yml@DartLabTemplates
         parameters:
           displayName: Get Baseline Build ID using CloudBuild Session ID
           continueOnError: true
           filePath: $(DartLab.Path)\Scripts\AzureDevOps\Build\Get-BuildIdFromCloudBuildSessionID.ps1
-          arguments: -ClientSecret (ConvertTo-SecureString '$(CloudBuild-ClientSecret)' -AsPlainText -Force) -ClientID '$(CloudBuild-ClientID)' -SessionID '7fd41b05-4734-5b4f-5c4f-4de4afc1a2b7' -OutVariableName 'BaselineBuildID'
+          arguments: -ClientSecret (ConvertTo-SecureString '$(CloudBuild-ClientSecret)' -AsPlainText -Force) -ClientID '$(CloudBuild-ClientID)' -SessionID $(setcloudbuildsessionid.QBuildSessionId) -OutVariableName 'BaselineBuildID'
         
       - task: PowerShell@2
         displayName: "Get Baseline build commit ids"
