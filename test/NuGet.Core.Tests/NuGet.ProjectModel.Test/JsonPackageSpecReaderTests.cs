@@ -3884,11 +3884,10 @@ namespace NuGet.ProjectModel.Test
                             {
                                 var frameworkPropertyName = reader.GetString();
                                 NuGetFramework framework = NuGetFramework.Parse(frameworkPropertyName);
-                                var dependencies = new List<LibraryDependency>();
 
                                 JsonPackageSpecReader.ReadCentralTransitiveDependencyGroup(
                                     jsonReader: ref reader,
-                                    results: dependencies,
+                                    results: out var dependencies,
                                     packageSpecPath: "SomePath");
                                 results.Add(new CentralTransitiveDependencyGroup(framework, dependencies));
                             }
@@ -3959,11 +3958,10 @@ namespace NuGet.ProjectModel.Test
                     {
                         reader.Read();
                         NuGetFramework framework = NuGetFramework.Parse(reader.GetString());
-                        var dependencies = new List<LibraryDependency>();
 
                         JsonPackageSpecReader.ReadCentralTransitiveDependencyGroup(
                             jsonReader: ref reader,
-                            results: dependencies,
+                            results: out var dependencies,
                             packageSpecPath: "SomePath");
                         results.Add(new CentralTransitiveDependencyGroup(framework, dependencies));
                     }
