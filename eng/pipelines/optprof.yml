@@ -60,7 +60,7 @@ stages:
     testLabPoolName: VS-Platform
     testMachineCleanUpStrategy: ${{parameters.testMachineCleanUpStrategy}}
     visualStudioSigning: Test
-    postInitializeTestEnvironmentStepList:
+    postInstallDartLabOptProfStepList:
     - template: \steps\azure-devtest-labs\artifacts\execute-powershell-script.yml@DartLabTemplates
       parameters:
         artifactTitle: Install netcoreapp2.1
