@@ -65,7 +65,7 @@ stages:
       parameters:
         artifactTitle: Install netcoreapp2.1
         scriptPath: C:\DartLab\Scripts\DotNet\Install-DotNet.ps1
-        scriptParameters: "-Channel 2.1 -Scope Machine"
+        scriptParameters: "-Version 2.1.818 -Scope Machine"
     ##### Step Hooks #####
     preTestMachineConfigurationStepList:
     - powershell: "Get-ChildItem Env: | Sort-Object Name | Format-Table -Wrap -AutoSize"
