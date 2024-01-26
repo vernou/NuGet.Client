@@ -61,11 +61,10 @@ stages:
     testMachineCleanUpStrategy: ${{parameters.testMachineCleanUpStrategy}}
     visualStudioSigning: Test
     postInstallDartLabOptProfStepList:
-    - template: \steps\azure-devtest-labs\artifacts\execute-powershell-script.yml@DartLabTemplates
-      parameters:
-        artifactTitle: Install netcoreapp2.1
-        scriptPath: C:\DartLab\Scripts\DotNet\Install-DotNet.ps1
-        scriptParameters: "-Version 2.1.818 -Scope Machine"
+    - powershell: |
+         Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
+        ./dotnet-install.ps1 -InstallDir '~/.dotnet' -Channel '2.1'
+      displayName: 'Install .NET 2.1 SDK'
     ##### Step Hooks #####
     preTestMachineConfigurationStepList:
     - powershell: "Get-ChildItem Env: | Sort-Object Name | Format-Table -Wrap -AutoSize"
