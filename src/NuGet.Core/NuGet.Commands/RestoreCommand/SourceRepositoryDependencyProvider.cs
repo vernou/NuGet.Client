@@ -36,11 +36,8 @@ namespace NuGet.Commands
         private bool _isFallbackFolderSource;
         private bool _useLegacyAssetTargetFallbackBehavior;
 
-        private readonly ConcurrentDictionary<LibraryRangeCacheKey, AsyncLazy<LibraryDependencyInfo>> _dependencyInfoCache
-            = new ConcurrentDictionary<LibraryRangeCacheKey, AsyncLazy<LibraryDependencyInfo>>();
-
-        private readonly ConcurrentDictionary<LibraryRange, AsyncLazy<LibraryIdentity>> _libraryMatchCache
-            = new ConcurrentDictionary<LibraryRange, AsyncLazy<LibraryIdentity>>();
+        private readonly TaskResultCache<LibraryRangeCacheKey, LibraryDependencyInfo> _dependencyInfoCache = new();
+        private readonly TaskResultCache<LibraryRange, LibraryIdentity> _libraryMatchCache = new();
 
         // Limiting concurrent requests to limit the amount of files open at a time.
         private readonly static SemaphoreSlim _throttle = GetThrottleSemaphoreSlim(EnvironmentVariableWrapper.Instance);
@@ -206,23 +203,11 @@ namespace NuGet.Commands
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            AsyncLazy<LibraryIdentity> result = null;
-
-            var action = new AsyncLazy<LibraryIdentity>(async () =>
-                await FindLibraryCoreAsync(libraryRange, cacheContext, logger, cancellationToken));
-
-            if (cacheContext.RefreshMemoryCache)
-            {
-                result = _libraryMatchCache.AddOrUpdate(libraryRange, action, (k, v) => action);
-            }
-            else
-            {
-                result = _libraryMatchCache.GetOrAdd(libraryRange, action);
-            }
-
             try
             {
-                return await result;
+                LibraryIdentity result = await _libraryMatchCache.GetOrAddAsync(libraryRange, cacheContext.RefreshMemoryCache, () => FindLibraryCoreAsync(libraryRange, cacheContext, logger, cancellationToken), cancellationToken);
+
+                return result;
             }
             catch (FatalProtocolException e)
             {
@@ -236,6 +221,7 @@ namespace NuGet.Commands
                     throw;
                 }
             }
+
             return null;
         }
 
@@ -351,23 +337,11 @@ namespace NuGet.Commands
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            AsyncLazy<LibraryDependencyInfo> result = null;
+            LibraryRangeCacheKey key = new(libraryIdentity, targetFramework);
 
-            var action = new AsyncLazy<LibraryDependencyInfo>(async () =>
-                await GetDependenciesCoreAsync(libraryIdentity, targetFramework, cacheContext, logger, cancellationToken));
+            LibraryDependencyInfo result = await _dependencyInfoCache.GetOrAddAsync(key, cacheContext.RefreshMemoryCache, () => GetDependenciesCoreAsync(libraryIdentity, targetFramework, cacheContext, logger, cancellationToken), cancellationToken);
 
-            var key = new LibraryRangeCacheKey(libraryIdentity, targetFramework);
-
-            if (cacheContext.RefreshMemoryCache)
-            {
-                result = _dependencyInfoCache.AddOrUpdate(key, action, (k, v) => action);
-            }
-            else
-            {
-                result = _dependencyInfoCache.GetOrAdd(key, action);
-            }
-
-            return await result;
+            return result;
         }
 
         private async Task<LibraryDependencyInfo> GetDependenciesCoreAsync(
@@ -412,10 +386,12 @@ namespace NuGet.Commands
                 _throttle?.Release();
             }
 
+            LibraryDependencyInfo libraryDependencyInfo = null;
+
             if (packageInfo == null)
             {
                 // Package was not found
-                return LibraryDependencyInfo.CreateUnresolved(match, targetFramework);
+                libraryDependencyInfo = LibraryDependencyInfo.CreateUnresolved(match, targetFramework);
             }
             else
             {
@@ -427,8 +403,10 @@ namespace NuGet.Commands
 
                 IEnumerable<LibraryDependency> dependencyGroup = GetDependencies(packageInfo, targetFramework);
 
-                return LibraryDependencyInfo.Create(originalIdentity, targetFramework, dependencies: dependencyGroup);
+                libraryDependencyInfo = LibraryDependencyInfo.Create(originalIdentity, targetFramework, dependencies: dependencyGroup);
             }
+
+            return libraryDependencyInfo;
         }
 
         /// <summary>
