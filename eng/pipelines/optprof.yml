@@ -62,7 +62,7 @@ stages:
     visualStudioSigning: Test
     postInstallDartLabOptProfStepList:
     - powershell: |
-         Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
+        Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
         ./dotnet-install.ps1 -InstallDir '~/.dotnet' -Channel '2.1'
       displayName: 'Install .NET 2.1 SDK'
     ##### Step Hooks #####
