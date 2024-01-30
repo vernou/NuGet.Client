@@ -16,6 +16,7 @@
     "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
     "Microsoft.NetCore.Component.Runtime.6.0",
     "Microsoft.NetCore.Component.SDK",
+    "Microsoft.Net.Core.Component.SDK.2.1",
     "Microsoft.VisualStudio.Component.FSharp",
     "Microsoft.ComponentGroup.ClickOnce.Publish",
     "Microsoft.NetCore.Component.DevelopmentTools",
