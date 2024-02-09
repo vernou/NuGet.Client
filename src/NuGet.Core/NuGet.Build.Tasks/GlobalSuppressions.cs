@@ -43,6 +43,8 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestorePackageReferencesTask.RestoreGraphItems")]
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreProjectReferencesTask.ProjectReferences")]
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreProjectReferencesTask.RestoreGraphItems")]
+[assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreNuGetAuditSuppressionsTask.NuGetAuditSuppressions")]
+[assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreNuGetAuditSuppressionsTask.RestoreGraphItems")]
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreSettingsTask.OutputConfigFilePaths")]
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreSettingsTask.OutputFallbackFolders")]
 [assembly: SuppressMessage("Build", "CA1819:Properties should not return arrays", Justification = "<Pending>", Scope = "member", Target = "~P:NuGet.Build.Tasks.GetRestoreSettingsTask.OutputSources")]

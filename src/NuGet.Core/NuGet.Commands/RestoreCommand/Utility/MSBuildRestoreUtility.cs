@@ -69,7 +69,7 @@ namespace NuGet.Commands
                         itemsById.Add(projectUniqueName, idItems);
                     }
 
-                    idItems.Add(item);
+                    idItems.Add(item); // ??
                 }
             }
 
@@ -267,7 +267,7 @@ namespace NuGet.Commands
                     result.RestoreMetadata.RestoreLockProperties = GetRestoreLockProperties(specItem);
 
                     // NuGet audit properties
-                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem);
+                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem, items);
                 }
 
                 if (restoreType == ProjectStyle.PackagesConfig)
@@ -910,19 +910,27 @@ namespace NuGet.Commands
                 IsPropertyTrue(specItem, "RestoreLockedMode"));
         }
 
-        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem)
+        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem, IEnumerable<IMSBuildItem> items)
         {
             string enableAudit = specItem.GetProperty("NuGetAudit");
             string auditLevel = specItem.GetProperty("NuGetAuditLevel");
             string auditMode = specItem.GetProperty("NuGetAuditMode");
 
-            if (enableAudit != null || auditLevel != null || auditMode != null)
+            var suppressedAdvisories = new List<string>();
+
+            foreach (var item in GetItemByType(items, "NuGetAuditIgnore"))
+            {
+                suppressedAdvisories.Add(item.GetProperty("Id"));
+            }
+
+            if (enableAudit != null || auditLevel != null || auditMode != null || suppressedAdvisories.Any())
             {
                 return new RestoreAuditProperties()
                 {
                     EnableAudit = enableAudit,
                     AuditLevel = auditLevel,
                     AuditMode = auditMode,
+                    SuppressedAdvisories = suppressedAdvisories,
                 };
             }
 

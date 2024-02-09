@@ -138,6 +138,7 @@ Copyright (c) .NET Foundation. All rights reserved.
   <UsingTask TaskName="NuGet.Build.Tasks.GetCentralPackageVersionsTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
   <UsingTask TaskName="NuGet.Build.Tasks.GetRestorePackageDownloadsTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
   <UsingTask TaskName="NuGet.Build.Tasks.GetRestoreFrameworkReferencesTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
+  <UsingTask TaskName="NuGet.Build.Tasks.GetRestoreNuGetAuditSuppressionsTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
   <UsingTask TaskName="NuGet.Build.Tasks.GetRestoreDotnetCliToolsTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
   <UsingTask TaskName="NuGet.Build.Tasks.GetProjectTargetFrameworksTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
   <UsingTask TaskName="NuGet.Build.Tasks.GetRestoreSolutionProjectsTask" AssemblyFile="$(RestoreTaskAssemblyFile)" />
@@ -319,6 +320,42 @@ Copyright (c) .NET Foundation. All rights reserved.
 
   <!--
     ============================================================
+    CollectNuGetAuditSuppressions
+    Gathers all NuGetAuditIgnore items from the project.
+    This target may be used as an extension point to modify
+    package downloads before NuGet reads them.
+    ============================================================
+  -->
+  <Target Name="CollectNuGetAuditSuppressions" Returns="@(NuGetAuditIgnore)">
+    <!-- NOTE for design-time builds we need to ensure that we continue on error. -->
+    <PropertyGroup>
+      <CollectNuGetAuditSuppressionsContinueOnError>$(ContinueOnError)</CollectNuGetAuditSuppressionsContinueOnError>
+      <CollectNuGetAuditSuppressionsContinueOnError Condition="'$(ContinueOnError)' == '' ">false</CollectNuGetAuditSuppressionsContinueOnError>
+    </PropertyGroup>
+
+    <CheckForDuplicateNuGetItemsTask
+      Condition="'$(DisableCheckingDuplicateNuGetItems)' != 'true' "
+      Items="@(NuGetAuditIgnore)"
+      ItemName="NuGetAuditIgnore"
+      LogCode="NU1505"
+      MSBuildProjectFullPath="$(MSBuildProjectFullPath)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+      WarningsAsErrors="$(WarningsAsErrors)"
+      WarningsNotAsErrors="$(WarningsNotAsErrors)"
+      NoWarn="$(NoWarn)"
+      ContinueOnError="$(CollectNuGetAuditSuppressionsContinueOnError)"
+      >
+      <Output TaskParameter="DeduplicatedItems" ItemName="DeduplicatedNuGetAuditSuppressions" />
+    </CheckForDuplicateNuGetItemsTask>
+
+    <ItemGroup Condition="'@(DeduplicatedNuGetAuditSuppressions)' != ''">
+      <NuGetAuditIgnore Remove="@(NuGetAuditIgnore)" />
+      <NuGetAuditIgnore Include="@(DeduplicatedNuGetAuditSuppressions)" />
+    </ItemGroup>
+  </Target>
+ 
+  <!--
+    ============================================================
     CollectFrameworkReferences
     ============================================================
   -->
@@ -329,6 +366,7 @@ Copyright (c) .NET Foundation. All rights reserved.
         Condition="'%(FrameworkReference.IsTransitiveFrameworkReference)' != 'true'"/>
     </ItemGroup>
   </Target>
+  
   <!--
     ============================================================
     _LoadRestoreGraphEntryPoints
@@ -869,6 +907,7 @@ Copyright (c) .NET Foundation. All rights reserved.
         <NuGetAudit>$(NuGetAudit)</NuGetAudit>
         <NuGetAuditLevel>$(NuGetAuditLevel)</NuGetAuditLevel>
         <NuGetAuditMode>$(NuGetAuditMode)</NuGetAuditMode>
+        <NuGetIgnore>$(NuGetIgnore)</NuGetIgnore>
       </_RestoreGraphEntry>
     </ItemGroup>
 
@@ -996,7 +1035,7 @@ Copyright (c) .NET Foundation. All rights reserved.
     ============================================================
   -->
   <Target Name="_GenerateProjectRestoreGraphPerFramework"
-    DependsOnTargets="_GetRestoreProjectStyle;CollectPackageReferences;CollectPackageDownloads;CollectFrameworkReferences;CollectCentralPackageVersions"
+    DependsOnTargets="_GetRestoreProjectStyle;CollectPackageReferences;CollectPackageDownloads;CollectFrameworkReferences;CollectCentralPackageVersions;CollectNuGetAuditSuppressions"
     Returns="@(_RestoreGraphEntry)">
 
     <!-- Write out project references -->
@@ -1023,6 +1062,21 @@ Copyright (c) .NET Foundation. All rights reserved.
         TaskParameter="RestoreGraphItems"
         ItemName="_RestoreGraphEntry" />
     </GetRestorePackageReferencesTask>
+
+    <!-- Write out advisory suppressions-->
+    <GetRestoreNuGetAuditSuppressionsTask
+      Condition=" '$(PackageReferenceCompatibleProjectStyle)' == 'true' "
+      ProjectUniqueName="$(MSBuildProjectFullPath)"
+      NuGetAuditSuppressions="@(NuGetAuditIgnore)"
+      TargetFrameworks="$(TargetFramework)"
+      >
+
+      <Output
+        TaskParameter="RestoreGraphItems"
+        ItemName="_RestoreGraphEntry" />
+    </GetRestoreNuGetAuditSuppressionsTask>
+
+    <!-- GetRestoreNuGetAuditIgnoreItemsTask -->
 
     <!-- Write out central package versions -->
     <GetCentralPackageVersionsTask

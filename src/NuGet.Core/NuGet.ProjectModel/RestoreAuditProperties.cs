@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using NuGet.Shared;
 
 namespace NuGet.ProjectModel
@@ -26,6 +27,12 @@ namespace NuGet.ProjectModel
         /// </summary>
         /// <value>direct, all</value>
         public string? AuditMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets values indicating which advisories to suppress.
+        /// </summary>
+        public IReadOnlyList<string> SuppressedAdvisories { get; set; } = new List<string>();
+        public IReadOnlyList<string> SuppressedAdvisories2 { get; set; } = new List<string>() { "https://github.com/advisories/GHSA-5crp-9r3c-p9vr" };
 
         public bool Equals(RestoreAuditProperties? other)
         {
