@@ -32,7 +32,6 @@ namespace NuGet.ProjectModel
         /// Gets or sets values indicating which advisories to suppress.
         /// </summary>
         public IReadOnlyList<string> SuppressedAdvisories { get; set; } = new List<string>();
-        public IReadOnlyList<string> SuppressedAdvisories2 { get; set; } = new List<string>() { "https://github.com/advisories/GHSA-5crp-9r3c-p9vr" };
 
         public bool Equals(RestoreAuditProperties? other)
         {

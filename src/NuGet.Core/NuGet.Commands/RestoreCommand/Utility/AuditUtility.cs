@@ -271,7 +271,7 @@ namespace NuGet.Commands.Restore.Utility
                                 continue;
                             }
 
-                            if (_restoreAuditProperties != null && _restoreAuditProperties.SuppressedAdvisories.Contains(knownVulnerability.Url.ToString()))
+                            if (_restoreAuditProperties != null && _restoreAuditProperties.SuppressedAdvisories.Contains(knownVulnerability.Url.ToString())) // HashSet > List?
                             {
                                 continue;
                             }

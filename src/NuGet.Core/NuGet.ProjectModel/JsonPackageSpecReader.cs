@@ -1045,7 +1045,6 @@ namespace NuGet.ProjectModel
 
                         jsonReader.ReadObject(auditPropertyName =>
                         {
-
                             switch (auditPropertyName)
                             {
                                 case "enableAudit":

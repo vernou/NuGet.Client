@@ -323,7 +323,7 @@ Copyright (c) .NET Foundation. All rights reserved.
     CollectNuGetAuditSuppressions
     Gathers all NuGetAuditIgnore items from the project.
     This target may be used as an extension point to modify
-    package downloads before NuGet reads them.
+    audit suppressions before NuGet reads them.
     ============================================================
   -->
   <Target Name="CollectNuGetAuditSuppressions" Returns="@(NuGetAuditIgnore)">
@@ -907,7 +907,6 @@ Copyright (c) .NET Foundation. All rights reserved.
         <NuGetAudit>$(NuGetAudit)</NuGetAudit>
         <NuGetAuditLevel>$(NuGetAuditLevel)</NuGetAuditLevel>
         <NuGetAuditMode>$(NuGetAuditMode)</NuGetAuditMode>
-        <NuGetIgnore>$(NuGetIgnore)</NuGetIgnore>
       </_RestoreGraphEntry>
     </ItemGroup>
 

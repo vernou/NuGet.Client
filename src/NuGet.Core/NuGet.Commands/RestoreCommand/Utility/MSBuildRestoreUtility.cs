@@ -267,7 +267,7 @@ namespace NuGet.Commands
                     result.RestoreMetadata.RestoreLockProperties = GetRestoreLockProperties(specItem);
 
                     // NuGet audit properties
-                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem, items);
+                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem, GetItemByType(items, "NuGetAuditIgnore"));
                 }
 
                 if (restoreType == ProjectStyle.PackagesConfig)
@@ -910,7 +910,7 @@ namespace NuGet.Commands
                 IsPropertyTrue(specItem, "RestoreLockedMode"));
         }
 
-        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem, IEnumerable<IMSBuildItem> items)
+        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem, IEnumerable<IMSBuildItem> suppressionItems)
         {
             string enableAudit = specItem.GetProperty("NuGetAudit");
             string auditLevel = specItem.GetProperty("NuGetAuditLevel");
@@ -918,7 +918,7 @@ namespace NuGet.Commands
 
             var suppressedAdvisories = new List<string>();
 
-            foreach (var item in GetItemByType(items, "NuGetAuditIgnore"))
+            foreach (var item in suppressionItems)
             {
                 suppressedAdvisories.Add(item.GetProperty("Id"));
             }
