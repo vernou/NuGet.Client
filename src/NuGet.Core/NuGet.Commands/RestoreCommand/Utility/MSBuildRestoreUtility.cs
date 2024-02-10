@@ -69,7 +69,7 @@ namespace NuGet.Commands
                         itemsById.Add(projectUniqueName, idItems);
                     }
 
-                    idItems.Add(item); // ??
+                    idItems.Add(item); // why add here??
                 }
             }
 

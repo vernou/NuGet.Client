@@ -558,7 +558,7 @@ namespace NuGet.ProjectModel
 
         private static void SetImports(IObjectWriter writer, IList<NuGetFramework> frameworks)
         {
-            if (frameworks?.Any() == true) // ?
+            if (frameworks?.Any() == true)
             {
                 var imports = frameworks.Select(framework => framework.GetShortFolderName());
 
