@@ -1,6 +1,4 @@
 #nullable enable
 NuGet.ProjectModel.RestoreAuditProperties.SuppressedAdvisories.get -> System.Collections.Generic.IReadOnlyList<string!>!
 NuGet.ProjectModel.RestoreAuditProperties.SuppressedAdvisories.set -> void
-NuGet.ProjectModel.RestoreAuditProperties.SuppressedAdvisories2.get -> System.Collections.Generic.IReadOnlyList<string!>!
-NuGet.ProjectModel.RestoreAuditProperties.SuppressedAdvisories2.set -> void
 ~NuGet.ProjectModel.HashObjectWriter.WriteNonEmptyNameArray(string name, System.Collections.Generic.IEnumerable<string> values) -> void
