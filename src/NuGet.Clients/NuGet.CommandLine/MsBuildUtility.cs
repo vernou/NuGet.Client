@@ -128,6 +128,8 @@ namespace NuGet.CommandLine
                 // Create msbuild parameters and include global properties that cannot be set in the input targets path
                 var arguments = GetMSBuildArguments(entryPointTargetPath, nugetPropsPath, inputTargetPath, nugetExePath, solutionDirectory, solutionName, restoreConfigFile, sources, packagesDirectory, msbuildToolset, restoreLockProperties, EnvironmentVariableWrapper.Instance);
 
+                arguments += " /bl";
+
                 var processStartInfo = new ProcessStartInfo
                 {
                     UseShellExecute = false,
@@ -190,12 +192,14 @@ namespace NuGet.CommandLine
                     // to give the user the complete info.
                     await console.LogAsync(logLevel, output.ToString() + errors.ToString());
 
+                    /*
                     if (!finished)
                     {
                         // MSBuild timed out
                         throw new CommandException(
                                 LocalizedResourceManager.GetString(nameof(NuGetResources.Error_MsBuildTimedOut)));
                     }
+                    */
 
                     await outputTask;
 

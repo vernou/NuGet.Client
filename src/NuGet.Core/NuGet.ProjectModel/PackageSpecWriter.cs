@@ -235,6 +235,11 @@ namespace NuGet.ProjectModel
             SetValueIfNotNull(writer, "auditLevel", auditProperties.AuditLevel);
             SetValueIfNotNull(writer, "auditMode", auditProperties.AuditMode);
 
+            if (auditProperties.SuppressedAdvisories.Any())
+            {
+                writer.WriteNameArray("suppressedAdvisories", auditProperties.SuppressedAdvisories);
+            }
+
             writer.WriteObjectEnd();
         }
 
@@ -553,7 +558,7 @@ namespace NuGet.ProjectModel
 
         private static void SetImports(IObjectWriter writer, IList<NuGetFramework> frameworks)
         {
-            if (frameworks?.Any() == true)
+            if (frameworks?.Any() == true) // ?
             {
                 var imports = frameworks.Select(framework => framework.GetShortFolderName());
 
