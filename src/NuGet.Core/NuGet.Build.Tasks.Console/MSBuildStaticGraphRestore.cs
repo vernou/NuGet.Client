@@ -44,7 +44,8 @@ namespace NuGet.Build.Tasks.Console
             "CollectPackageReferences",
             "CollectPackageDownloads",
             "CollectFrameworkReferences",
-            "CollectCentralPackageVersions"
+            "CollectCentralPackageVersions",
+            "CollectNuGetAuditSuppressions"
         };
 
         private readonly Lazy<ConsoleLoggingQueue> _loggingQueueLazy;
@@ -836,7 +837,7 @@ namespace NuGet.Build.Tasks.Console
 
             (bool isCentralPackageManagementEnabled, bool isCentralPackageVersionOverrideDisabled, bool isCentralPackageTransitivePinningEnabled, bool isCentralPackageFloatingVersionsEnabled) = MSBuildRestoreUtility.GetCentralPackageManagementSettings(project, projectStyle);
 
-            RestoreAuditProperties auditProperties = MSBuildRestoreUtility.GetRestoreAuditProperties(project, project.GetItems("NuGetAuditIgnore"));
+            RestoreAuditProperties auditProperties = MSBuildRestoreUtility.GetRestoreAuditProperties(project, GetAuditSuppressions(project));
 
             List<TargetFrameworkInformation> targetFrameworkInfos = GetTargetFrameworkInfos(projectsByTargetFramework, isCentralPackageManagementEnabled);
 
@@ -1069,6 +1070,13 @@ namespace NuGet.Build.Tasks.Console
         private static IEnumerable<IMSBuildItem> GetDistinctItemsOrEmpty(IMSBuildProject project, string itemName)
         {
             return project.GetItems(itemName)?.Distinct(ProjectItemInstanceEvaluatedIncludeComparer.Instance) ?? Enumerable.Empty<IMSBuildItem>();
+        }
+
+        private static List<string> GetAuditSuppressions(IMSBuildProject project)
+        {
+            return GetDistinctItemsOrEmpty(project, "NuGetAuditIgnore")
+                        .Select(i => i.GetProperty("Identity"))
+                        .ToList();
         }
 
         /// <summary>

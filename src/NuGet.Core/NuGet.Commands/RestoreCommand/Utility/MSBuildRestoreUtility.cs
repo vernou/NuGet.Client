@@ -267,7 +267,7 @@ namespace NuGet.Commands
                     result.RestoreMetadata.RestoreLockProperties = GetRestoreLockProperties(specItem);
 
                     // NuGet audit properties
-                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem, GetItemByType(items, "NuGetAuditIgnore"));
+                    result.RestoreMetadata.RestoreAuditProperties = GetRestoreAuditProperties(specItem, GetAuditSuppressions(items));
                 }
 
                 if (restoreType == ProjectStyle.PackagesConfig)
@@ -910,31 +910,31 @@ namespace NuGet.Commands
                 IsPropertyTrue(specItem, "RestoreLockedMode"));
         }
 
-        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem, IEnumerable<IMSBuildItem> suppressionItems)
+        public static RestoreAuditProperties GetRestoreAuditProperties(IMSBuildItem specItem, List<string> suppressionItems)
         {
             string enableAudit = specItem.GetProperty("NuGetAudit");
             string auditLevel = specItem.GetProperty("NuGetAuditLevel");
             string auditMode = specItem.GetProperty("NuGetAuditMode");
 
-            var suppressedAdvisories = new List<string>();
-
-            foreach (var item in suppressionItems)
-            {
-                suppressedAdvisories.Add(item.GetProperty("Id"));
-            }
-
-            if (enableAudit != null || auditLevel != null || auditMode != null || suppressedAdvisories.Any())
+            if (enableAudit != null || auditLevel != null || auditMode != null || suppressionItems.Any())
             {
                 return new RestoreAuditProperties()
                 {
                     EnableAudit = enableAudit,
                     AuditLevel = auditLevel,
                     AuditMode = auditMode,
-                    SuppressedAdvisories = suppressedAdvisories,
+                    SuppressedAdvisories = suppressionItems,
                 };
             }
 
             return null;
+        }
+
+        private static List<string> GetAuditSuppressions(IEnumerable<IMSBuildItem> items)
+        {
+            return GetItemByType(items, "NuGetAuditIgnore")
+                        .Select(i => i.GetProperty("Id"))
+                        .ToList();
         }
 
         /// <summary>
