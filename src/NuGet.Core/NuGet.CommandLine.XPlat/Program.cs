@@ -28,14 +28,19 @@ namespace NuGet.CommandLine.XPlat
 
         public static int Main(string[] args)
         {
+            return MainInternal(args, DotnetNuGetAppName);
+        }
+
+        public static int MainInternal(string[] args, string appName)
+        {
             var log = new CommandOutputLogger(LogLevel.Information);
-            return MainInternal(args, log);
+            return MainInternal(args, log, appName);
         }
 
         /// <summary>
         /// Internal Main. This is used for testing.
         /// </summary>
-        public static int MainInternal(string[] args, CommandOutputLogger log)
+        public static int MainInternal(string[] args, CommandOutputLogger log, string appName)
         {
 #if DEBUG
             // Uncomment the following when debugging. Also uncomment the PackageReference for Microsoft.Build.Locator.
@@ -110,7 +115,7 @@ namespace NuGet.CommandLine.XPlat
                 return exitCodeValue;
             }
 
-            var app = InitializeApp(args, log);
+            var app = InitializeApp(args, log, appName);
 
             // Remove the correct item in array for "package" commands. Only do this when "add package", "remove package", etc... are being run.
             if (app.Name == DotnetPackageAppName)
@@ -223,7 +228,7 @@ namespace NuGet.CommandLine.XPlat
             log.LogVerbose(e.ToString());
         }
 
-        private static CommandLineApplication InitializeApp(string[] args, CommandOutputLogger log)
+        private static CommandLineApplication InitializeApp(string[] args, CommandOutputLogger log, string appName)
         {
             // Many commands don't want prefixes output. Use this func instead of () => log to set the HidePrefix property first.
             Func<ILoggerWithColor> getHidePrefixLogger = () =>
@@ -248,7 +253,7 @@ namespace NuGet.CommandLine.XPlat
             else
             {
                 // "dotnet nuget *" commands
-                app.Name = DotnetNuGetAppName;
+                app.Name = appName;
                 CommandParsers.Register(app, getHidePrefixLogger);
                 DeleteCommand.Register(app, getHidePrefixLogger);
                 PushCommand.Register(app, getHidePrefixLogger);
