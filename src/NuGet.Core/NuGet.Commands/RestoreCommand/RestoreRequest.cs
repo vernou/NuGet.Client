@@ -90,6 +90,12 @@ namespace NuGet.Commands
         /// </summary>
         public IList<ExternalProjectReference> ExternalProjects { get; set; }
 
+#pragma warning disable RS0016 // Add public types and members to the declared API
+#pragma warning disable CA2227 // Collection properties should be read only
+        public Dictionary<string, string> PackageSpecHashCodeMap { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
         /// <summary>
         /// The path to the lock file to read/write. If not specified, uses the file 'project.lock.json' in the same
         /// directory as the provided PackageSpec.

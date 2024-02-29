@@ -772,7 +772,7 @@ namespace NuGet.Commands
             return (success, isLockFileValid, packagesLockFile);
         }
 
-        private (CacheFile cacheFile, bool noOp, TimeSpan? cacheFileAge) EvaluateCacheFile()
+        private (CacheFile cacheFile, bool noOp, TimeSpan? cacheFileAge) EvaluateCacheFile(Dictionary<string, string> HashCodeMath)
         {
             CacheFile cacheFile;
             var noOp = false;
