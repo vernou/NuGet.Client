@@ -313,12 +313,12 @@ namespace NuGet.ProjectModel
             using (var hashFunc = new Sha512HashFunction())
             using (var writer = new HashObjectWriter(hashFunc))
             {
-                HashingWrite(writer, hashing: true, PackageSpecWriter.Write, HashCodeMath, hashFunc);
+                HashingWrite(writer, hashing: true, PackageSpecWriter.Write, HashCodeMath);
                 return writer.GetHash();
             }
         }
 
-        private void HashingWrite(RuntimeModel.IObjectWriter writer, bool hashing, Action<PackageSpec, RuntimeModel.IObjectWriter, bool, IEnvironmentVariableReader> writeAction, Dictionary<string, string> HashCodeMath, Sha512HashFunction hashFunc)
+        private void HashingWrite(RuntimeModel.IObjectWriter writer, bool hashing, Action<PackageSpec, RuntimeModel.IObjectWriter, bool, IEnvironmentVariableReader> writeAction, Dictionary<string, string> HashCodeMath)
         {
             writer.WriteObjectStart();
             writer.WriteNameValue("format", Version);
@@ -339,7 +339,6 @@ namespace NuGet.ProjectModel
             // Preserve default sort order
             foreach (var pair in _projects)
             {
-                using var projectWriter = new HashObjectWriter(hashFunc);
 
                 var project = pair.Value;
 
@@ -349,12 +348,19 @@ namespace NuGet.ProjectModel
                 {
                     HashCodeMath.TryGetValue(project.RestoreMetadata.ProjectUniqueName, out projectHash);
                 }
-                if (projectHash != null)
+
+                if (projectHash == null)
                 {
-                    projectWriter.WriteObjectStart(project.RestoreMetadata.ProjectUniqueName);
-                    writeAction.Invoke(project, projectWriter, hashing, EnvironmentVariableWrapper.Instance);
-                    projectWriter.WriteObjectEnd();
-                    projectHash = projectWriter.GetHash();
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    using (var hashFunc = new Sha512HashFunction())
+                    using (var projectWriter = new HashObjectWriter(hashFunc))
+                    {
+                        //projectWriter.WriteObjectStart(project.RestoreMetadata.ProjectUniqueName);
+                        writeAction.Invoke(project, projectWriter, hashing, EnvironmentVariableWrapper.Instance);
+                        //projectWriter.WriteObjectEnd();
+                        projectHash = projectWriter.GetHash();
+                    }
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 lock (HashCodeMath)
