@@ -772,7 +772,7 @@ namespace NuGet.Commands
             return (success, isLockFileValid, packagesLockFile);
         }
 
-        private (CacheFile cacheFile, bool noOp, TimeSpan? cacheFileAge) EvaluateCacheFile(Dictionary<string, string> HashCodeMath)
+        private (CacheFile cacheFile, bool noOp, TimeSpan? cacheFileAge) EvaluateCacheFile()
         {
             CacheFile cacheFile;
             var noOp = false;
@@ -786,7 +786,7 @@ namespace NuGet.Commands
                 NoOpRestoreUtilities.UpdateRequestBestMatchingToolPathsIfAvailable(_request);
             }
 
-            var newDgSpecHash = noOpDgSpec.GetHash();
+            var newDgSpecHash = noOpDgSpec.GetHash(_request.ProjectNameToPackageSpecHash);
 
             // if --force-evaluate flag is passed then restore noop check will also be skipped.
             // this will also help us to get rid of -force flag in near future.
