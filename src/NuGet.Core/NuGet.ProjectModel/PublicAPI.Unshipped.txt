@@ -1,5 +1,4 @@
 #nullable enable
 NuGet.ProjectModel.RestoreAuditProperties.TryParseAuditLevel(out NuGet.Protocol.PackageVulnerabilitySeverity result) -> bool
 NuGet.ProjectModel.RestoreAuditProperties.TryParseEnableAudit(out bool result) -> bool
-~NuGet.ProjectModel.DependencyGraphSpec.GetHash(System.Collections.Generic.Dictionary<string, string> HashCodeMath) -> string
 ~NuGet.ProjectModel.HashObjectWriter.WriteNonEmptyNameArray(string name, System.Collections.Generic.IEnumerable<string> values) -> void
