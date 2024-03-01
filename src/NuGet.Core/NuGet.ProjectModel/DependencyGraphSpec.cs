@@ -9,6 +9,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Common;
 using NuGet.Packaging;
+using NuGet.RuntimeModel;
 
 namespace NuGet.ProjectModel
 {
@@ -308,17 +309,17 @@ namespace NuGet.ProjectModel
             }
         }
 
-        public string GetHash(Dictionary<string, string> HashCodeMath)
+        public string GetHash(Dictionary<string, string> projectNameToHashCode)
         {
             using (var hashFunc = new Sha512HashFunction())
             using (var writer = new HashObjectWriter(hashFunc))
             {
-                HashingWrite(writer, hashing: true, PackageSpecWriter.Write, HashCodeMath);
+                Write(writer, hashing: true, PackageSpecWriter.Write, projectNameToHashCode);
                 return writer.GetHash();
             }
         }
 
-        private void HashingWrite(RuntimeModel.IObjectWriter writer, bool hashing, Action<PackageSpec, RuntimeModel.IObjectWriter, bool, IEnvironmentVariableReader> writeAction, Dictionary<string, string> HashCodeMath)
+        private void Write(RuntimeModel.IObjectWriter writer, bool hashing, Action<PackageSpec, RuntimeModel.IObjectWriter, bool, IEnvironmentVariableReader> writeAction, Dictionary<string, string> projectNameToHashCode = null)
         {
             writer.WriteObjectStart();
             writer.WriteNameValue("format", Version);
@@ -339,76 +340,50 @@ namespace NuGet.ProjectModel
             // Preserve default sort order
             foreach (var pair in _projects)
             {
-
                 var project = pair.Value;
+                WriteProject(writer, hashing, writeAction, project, projectNameToHashCode);
+            }
 
+            writer.WriteObjectEnd();
+            writer.WriteObjectEnd();
+        }
+
+        private static void WriteProject(IObjectWriter writer, bool hashing, Action<PackageSpec, IObjectWriter, bool, IEnvironmentVariableReader> writeAction, PackageSpec project, Dictionary<string, string> projectNameToHashCode)
+        {
+            if (hashing && projectNameToHashCode != null)
+            {
                 string projectHash = null;
 
-                lock (HashCodeMath)
+                lock (projectNameToHashCode)
                 {
-                    HashCodeMath.TryGetValue(project.RestoreMetadata.ProjectUniqueName, out projectHash);
+                    projectNameToHashCode.TryGetValue(project.RestoreMetadata.ProjectUniqueName, out projectHash);
                 }
 
                 if (projectHash == null)
                 {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    using (var hashFunc = new Sha512HashFunction())
-                    using (var projectWriter = new HashObjectWriter(hashFunc))
-                    {
-                        //projectWriter.WriteObjectStart(project.RestoreMetadata.ProjectUniqueName);
-                        writeAction.Invoke(project, projectWriter, hashing, EnvironmentVariableWrapper.Instance);
-                        //projectWriter.WriteObjectEnd();
-                        projectHash = projectWriter.GetHash();
-                    }
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                    using var hashFunc = new Sha512HashFunction();
+                    using var projectWriter = new HashObjectWriter(hashFunc);
+                    writeAction.Invoke(project, projectWriter, hashing, EnvironmentVariableWrapper.Instance);
+                    projectHash = projectWriter.GetHash();
                 }
 
-                lock (HashCodeMath)
+                lock (projectNameToHashCode)
                 {
-                    if (!HashCodeMath.ContainsKey(project.RestoreMetadata.ProjectUniqueName))
+                    if (!projectNameToHashCode.ContainsKey(project.RestoreMetadata.ProjectUniqueName))
                     {
-                        HashCodeMath[project.RestoreMetadata.ProjectUniqueName] = projectHash;
+                        projectNameToHashCode[project.RestoreMetadata.ProjectUniqueName] = projectHash;
                     }
                 }
 
                 writer.WriteObjectStart(projectHash);
                 writer.WriteObjectEnd();
             }
-
-            writer.WriteObjectEnd();
-            writer.WriteObjectEnd();
-        }
-
-        private void Write(RuntimeModel.IObjectWriter writer, bool hashing, Action<PackageSpec, RuntimeModel.IObjectWriter, bool, IEnvironmentVariableReader> writeAction)
-        {
-            writer.WriteObjectStart();
-            writer.WriteNameValue("format", Version);
-
-            writer.WriteObjectStart("restore");
-
-            // Preserve default sort order
-            foreach (var restoreName in _restore)
+            else
             {
-                writer.WriteObjectStart(restoreName);
-                writer.WriteObjectEnd();
-            }
-
-            writer.WriteObjectEnd();
-
-            writer.WriteObjectStart("projects");
-
-            // Preserve default sort order
-            foreach (var pair in _projects)
-            {
-                var project = pair.Value;
-
                 writer.WriteObjectStart(project.RestoreMetadata.ProjectUniqueName);
                 writeAction.Invoke(project, writer, hashing, EnvironmentVariableWrapper.Instance);
                 writer.WriteObjectEnd();
             }
-
-            writer.WriteObjectEnd();
-            writer.WriteObjectEnd();
         }
 
         /// <summary>
