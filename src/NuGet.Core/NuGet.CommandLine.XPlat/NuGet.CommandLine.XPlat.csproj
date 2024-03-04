@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>NuGet executable wrapper for the dotnet CLI nuget functionality.</Description>
-    <TargetFrameworks>$(MinimalTargetFrameworksExeSigning)</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <RuntimeIdentifier Condition=" '$(TargetFramework)' == '$(NETFXTargetFramework)' ">win7-x86</RuntimeIdentifier>
     <NoWarn>$(NoWarn);CS1591;CS1701;NU5104;CA1307;CA2000</NoWarn>
     <OutputType>Exe</OutputType>
@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils.Sources" PrivateAssets="All" />
     <PackageReference Include="System.Diagnostics.Debug" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />

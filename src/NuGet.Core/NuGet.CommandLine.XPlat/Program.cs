@@ -16,6 +16,16 @@ using System.CommandLine.Parsing;
 
 namespace NuGet.CommandLine.XPlat
 {
+#pragma warning disable RS0016 // Add public types and members to the declared API
+    public static class PublicProgram
+    {
+        public static int PublicMain(string[] args)
+        {
+            return Program.Main(args);
+        }
+    }
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
     internal class Program
     {
 #if DEBUG
@@ -28,6 +38,9 @@ namespace NuGet.CommandLine.XPlat
 
         public static int Main(string[] args)
         {
+            var instance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(instance => instance.Version).First();
+            Microsoft.Build.Locator.MSBuildLocator.RegisterInstance(instance);
+
             var log = new CommandOutputLogger(LogLevel.Information);
             return MainInternal(args, log);
         }
