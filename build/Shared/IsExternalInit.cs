@@ -6,7 +6,6 @@
 using System.Diagnostics;
 
 namespace System.Runtime.CompilerServices;
-
 // This class allows the compiler to emit record structs in earlier versions of .NET
 
 [DebuggerNonUserCode]

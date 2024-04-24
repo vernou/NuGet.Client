@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 
 namespace NuGet;
-
 internal static class NoAllocEnumerateExtensions
 {
     #region IList

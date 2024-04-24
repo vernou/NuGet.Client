@@ -6,38 +6,36 @@
 using System;
 using System.Collections.Generic;
 
-namespace NuGet
+namespace NuGet;
+internal class SimplePool<T> where T : class
 {
-    internal class SimplePool<T> where T : class
+    private readonly object _lockObj = new();
+    private readonly Stack<T> _values = new();
+    private readonly Func<T> _allocate;
+
+    public SimplePool(Func<T> allocate)
     {
-        private readonly object _lockObj = new();
-        private readonly Stack<T> _values = new();
-        private readonly Func<T> _allocate;
+        _allocate = allocate;
+    }
 
-        public SimplePool(Func<T> allocate)
+    public T Allocate()
+    {
+        lock (_lockObj)
         {
-            _allocate = allocate;
+            if (_values.Count > 0)
+            {
+                return _values.Pop();
+            }
         }
 
-        public T Allocate()
-        {
-            lock (_lockObj)
-            {
-                if (_values.Count > 0)
-                {
-                    return _values.Pop();
-                }
-            }
+        return _allocate();
+    }
 
-            return _allocate();
-        }
-
-        public void Free(T value)
+    public void Free(T value)
+    {
+        lock (_lockObj)
         {
-            lock (_lockObj)
-            {
-                _values.Push(value);
-            }
+            _values.Push(value);
         }
     }
 }

@@ -1,7 +1,5 @@
-// Copied from https://raw.githubusercontent.com/dotnet/runtime/09e796af2adb5e2b821a4fc19fd9903700b771d3/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RequiredMemberAttribute.cs
-// Copied from https://raw.githubusercontent.com/dotnet/runtime/09e796af2adb5e2b821a4fc19fd9903700b771d3/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/CompilerFeatureRequiredAttribute.cs
-// Copied from https://raw.githubusercontent.com/dotnet/runtime/09e796af2adb5e2b821a4fc19fd9903700b771d3/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/SetsRequiredMembersAttribute.cs
-// Modified to work in the NuGet.Client repo
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 // Used to enable the `required` modifier in TargetFrameworks before .NET 7
 

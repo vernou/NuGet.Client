@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGet;
-
 #nullable enable
 
 internal static class TaskResult

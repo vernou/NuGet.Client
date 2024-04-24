@@ -9,43 +9,19 @@ namespace Poc.HowFix;
 
 internal class MSBuildAPIUtility
 {
-    private const string PACKAGE_REFERENCE_TYPE_TAG = "PackageReference";
-    private const string RESTORE_STYLE_TAG = "RestoreProjectStyle";
-    private const string NUGET_STYLE_TAG = "NuGetProjectStyle";
-    private const string ASSETS_FILE_PATH_TAG = "ProjectAssetsFile";
-
-    internal static string GetProjectName(string projectCSProjPath)
-    {
-        return GetProject(projectCSProjPath).GetPropertyValue("MSBuildProjectName");
-    }
-
-    /// <summary>
-    /// A simple check for some of the evaluated properties to check
-    /// if the project is package reference project or not
-    /// </summary>
-    internal static bool IsPackageReferenceProject(string projectCSProjPath)
-    {
-        Project project = GetProject(projectCSProjPath);
-        return (project.GetPropertyValue(RESTORE_STYLE_TAG) == "PackageReference" ||
-                project.GetItems(PACKAGE_REFERENCE_TYPE_TAG).Count != 0 ||
-                project.GetPropertyValue(NUGET_STYLE_TAG) == "PackageReference" ||
-                project.GetPropertyValue(ASSETS_FILE_PATH_TAG) != "");
-    }
-
-    internal static string GetAssetsFilePath(string projectCSProjPath)
-    {
-        return GetProject(projectCSProjPath).GetPropertyValue("ProjectAssetsFile");
-    }
+    public const string PACKAGE_REFERENCE_TYPE_TAG = "PackageReference";
+    public const string RESTORE_STYLE_TAG = "RestoreProjectStyle";
+    public const string NUGET_STYLE_TAG = "NuGetProjectStyle";
+    public const string ASSETS_FILE_PATH_TAG = "ProjectAssetsFile";
 
     /// <summary>
     /// Opens an MSBuild.Evaluation.Project type from a csproj file.
     /// </summary>
-    private static Project GetProject(string projectCSProjPath)
+    internal static Project GetProject(string projectCSProjPath)
     {
         var projectRootElement = TryOpenProjectRootElement(projectCSProjPath);
-        if (projectRootElement == null)
+        if (projectRootElement is null)
         {
-            //throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.Error_MsBuildUnableToOpenProject, projectCSProjPath));
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Error_MsBuildUnableToOpenProject", projectCSProjPath));
         }
         return new Project(projectRootElement, null, null, new ProjectCollection());
