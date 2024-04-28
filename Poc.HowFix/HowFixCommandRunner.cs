@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.CommandLine.XPlat;
 using NuGet.ProjectModel;
+using Poc.HowFix.MSBuild;
 
 namespace Poc.HowFix;
 
@@ -44,12 +46,12 @@ internal class HowFixCommandRunner
         List<FrameworkPackages> frameworks;
         try
         {
-            frameworks = msBuild.GetResolvedVersions(project, listPackageArgs.Frameworks, assetsFile, listPackageArgs.IncludeTransitive);
+            frameworks = MSBuildAPIUtility.GetResolvedVersions(project, [], assetsFile, true);
         }
         catch (InvalidOperationException ex)
         {
-            projectModel.AddProjectInformation(ProblemType.Error, ex.Message);
-            return;
+            //projectModel.AddProjectInformation(ProblemType.Error, ex.Message);
+            return 1;
         }
 
         return 0;
