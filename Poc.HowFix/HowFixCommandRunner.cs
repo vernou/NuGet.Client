@@ -42,11 +42,14 @@ internal class HowFixCommandRunner
             throw new InvalidOperationException($"Unable to read the assets file `{assetsPath}`. Please make sure the file has the write format.");
         }
 
+        MSBuildAPIUtility.Resolve(assetsFile);
+
         // Get all the packages that are referenced in a project
-        List<FrameworkPackages> frameworks;
+        List <FrameworkPackages> frameworks;
         try
         {
             frameworks = MSBuildAPIUtility.GetResolvedVersions(project, [], assetsFile, true);
+            var framework = frameworks.Single();
         }
         catch (InvalidOperationException ex)
         {

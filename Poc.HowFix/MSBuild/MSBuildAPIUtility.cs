@@ -9,6 +9,8 @@ using NuGet.Frameworks;
 using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
+using Poc.HowFix.Models;
 using System.Globalization;
 
 namespace Poc.HowFix.MSBuild;
@@ -17,6 +19,62 @@ internal class MSBuildAPIUtility
 {
     private const string PACKAGE_VERSION_TYPE_TAG = "PackageVersion";
     private const string CollectPackageReferences = "CollectPackageReferences";
+
+    internal static Models.PackageDependency Resolve(LockFile assetsFile)
+    {
+        var target = assetsFile.Targets.Single();
+        var packageLibraries = target.Libraries.Where(l => l.Type == "package");
+        var projectLibraries = target.Libraries.Where(l => l.Type == "project");
+        var rootDependencies = assetsFile.PackageSpec.TargetFrameworks.Single(tfm => tfm.FrameworkName.Equals(target.TargetFramework)).Dependencies;
+        var dependenciesCache = new Dictionary<string, Models.PackageDependency>();
+
+        var root = new Models.Project {
+            Name = assetsFile.PackageSpec.Name,
+            ResolvedVersion = assetsFile.PackageSpec.Version
+        };
+
+        foreach(var projectDependency in rootDependencies)
+        {
+            root.AddPackageReference(Get(projectDependency.Name), projectDependency.LibraryRange.VersionRange!);
+        }
+
+        foreach(var p in projectLibraries)
+        {
+            var project = new Models.Project {
+                Name = p.Name,
+                ResolvedVersion = p.Version
+            };
+
+            foreach(var projectDependency in p.Dependencies)
+            {
+                project.AddPackageReference(Get(projectDependency.Id), projectDependency.VersionRange);
+            }
+            root.AddProjectReference(project);
+        }
+
+        return root;
+
+        Models.PackageDependency Get(string name)
+        {
+            if(dependenciesCache.TryGetValue(name, out var dependency))
+            {
+                return dependency;
+            }
+
+            var library = packageLibraries.Single<LockFileTargetLibrary>(l => l.Name!.Equals(name));
+            var dep = new Models.PackageDependency {
+                Name = library.Name!,
+                ResolvedVersion = library.Version!
+            };
+            dependenciesCache.Add(name, dep);
+            foreach(var d in library.Dependencies)
+            {
+                var subDep = Get(d.Id);
+                dep.AddPackageReference(subDep, d.VersionRange);
+            }
+            return dep;
+        }
+    }
 
     internal static List<FrameworkPackages> GetResolvedVersions(
         ProjectWrapper project, IEnumerable<string> userInputFrameworks, LockFile assetsFile, bool transitive)
@@ -80,7 +138,6 @@ internal class MSBuildAPIUtility
             // Find the tfminformation corresponding to the target to
             // get the top-level dependencies
             TargetFrameworkInformation tfmInformation;
-
             try
             {
                 tfmInformation = requestedTargetFrameworks.First(tfm => tfm.FrameworkName.Equals(target.TargetFramework));
