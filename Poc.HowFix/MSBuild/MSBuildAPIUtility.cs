@@ -22,11 +22,14 @@ internal class MSBuildAPIUtility
 
     internal static Models.PackageDependency Resolve(LockFile assetsFile)
     {
-        var target = assetsFile.Targets.Single();
+        // Filtering the Targets to ignore TargetFramework + RID combination, only keep TargetFramework in requestedTargets.
+        // So that only one section will be shown for each TFM.
+        var target = assetsFile.Targets.Where(t => t.RuntimeIdentifier == null).Single();
         var packageLibraries = target.Libraries.Where(l => l.Type == "package");
         var projectLibraries = target.Libraries.Where(l => l.Type == "project");
         var rootDependencies = assetsFile.PackageSpec.TargetFrameworks.Single(tfm => tfm.FrameworkName.Equals(target.TargetFramework)).Dependencies;
         var dependenciesCache = new Dictionary<string, Models.PackageDependency>();
+        var projectsCache = new Dictionary<string, Models.Project>();
 
         var root = new Models.Project {
             Name = assetsFile.PackageSpec.Name,
@@ -35,30 +38,73 @@ internal class MSBuildAPIUtility
 
         foreach(var projectDependency in rootDependencies)
         {
-            root.AddPackageReference(Get(projectDependency.Name), projectDependency.LibraryRange.VersionRange!);
+            root.AddPackageReference(GetPackageDependency(projectDependency.Name), projectDependency.LibraryRange.VersionRange!);
         }
 
         foreach(var p in projectLibraries)
         {
-            var project = new Models.Project {
-                Name = p.Name,
-                ResolvedVersion = p.Version
-            };
-
-            foreach(var projectDependency in p.Dependencies)
-            {
-                project.AddPackageReference(Get(projectDependency.Id), projectDependency.VersionRange);
-            }
+            var project = GetProject(p.Name);
             root.AddProjectReference(project);
         }
 
         return root;
 
-        Models.PackageDependency Get(string name)
+        Models.Project GetProject(string name)
+        {
+            if (projectsCache.TryGetValue(name, out var projectFromCache))
+            {
+                return projectFromCache;
+            }
+
+            var foundLibraries = projectLibraries.Where(l => l.Name!.Equals(name));
+            if (!foundLibraries.Any())
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "No project with the name `{0}` found in the assets file.", name));
+            }
+
+            if (foundLibraries.Count() > 1)
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Multiple projects with the same name `{0}` found in the assets file.", name));
+            }
+
+            var projectLibrary = projectLibraries.Single(l => l.Name!.Equals(name));
+
+            var project = new Models.Project
+            {
+                Name = projectLibrary.Name,
+                ResolvedVersion = projectLibrary.Version
+            };
+            projectsCache.Add(name, project);
+            foreach (var projectDependency in projectLibrary.Dependencies)
+            {
+                if (projectLibraries.Any(l => l.Name == projectDependency.Id))
+                {
+                    project.AddProjectReference(GetProject(projectDependency.Id));
+                }
+                else
+                {
+                    project.AddPackageReference(GetPackageDependency(projectDependency.Id), projectDependency.VersionRange);
+                }
+            }
+            return project;
+        }
+
+        Models.PackageDependency GetPackageDependency(string name)
         {
             if(dependenciesCache.TryGetValue(name, out var dependency))
             {
                 return dependency;
+            }
+
+            var foundLibraries = packageLibraries.Where(l => l.Name!.Equals(name));
+            if (!foundLibraries.Any())
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "No library with the name `{0}` found in the assets file.", name));
+            }
+
+            if (foundLibraries.Count() > 1)
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Multiple libraries with the same name `{0}` found in the assets file.", name));
             }
 
             var library = packageLibraries.Single<LockFileTargetLibrary>(l => l.Name!.Equals(name));
@@ -69,7 +115,7 @@ internal class MSBuildAPIUtility
             dependenciesCache.Add(name, dep);
             foreach(var d in library.Dependencies)
             {
-                var subDep = Get(d.Id);
+                var subDep = GetPackageDependency(d.Id);
                 dep.AddPackageReference(subDep, d.VersionRange);
             }
             return dep;
